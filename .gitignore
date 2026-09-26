@@ -13,3 +13,7 @@ backend/.env
 
 # VS Code
 .vscode/
+
+# Multi-Agent runtime data
+multi_agent/**/data/
+multi_agent/**/logs/

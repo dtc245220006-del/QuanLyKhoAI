@@ -1,5 +1,6 @@
+from typing import Any
+
 from pydantic import BaseModel
-from typing import Any, Optional
 
 
 class AgentMessage(BaseModel):
@@ -9,4 +10,4 @@ class AgentMessage(BaseModel):
     message_type: str
     payload: Any
     status: str = "success"
-    error: Optional[str] = None
+    error: str | None = None

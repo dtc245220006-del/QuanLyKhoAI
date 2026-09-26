@@ -2,11 +2,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 function Layout() {
   const navigate = useNavigate();
-
-  const user = JSON.parse(
-    localStorage.getItem("user") || "{}"
-  );
-
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
   const menuItems = [
     { name: "Tổng quan", path: "/dashboard", icon: "📊" },
     { name: "Nhóm hàng", path: "/nhom-hang", icon: "📁" },
@@ -18,14 +14,11 @@ function Layout() {
     { name: "Lịch sử kho", path: "/lich-su-kho", icon: "🕒" },
     { name: "Thống kê & báo cáo", path: "/bao-cao", icon: "📈" },
     { name: "AI phân tích tồn kho", path: "/ai", icon: "🤖" },
+    { name: "Multi-Agent AI", path: "/multi-agent", icon: "🧠" },
   ];
 
-  if (user.role === "Quản Lý") {
-    menuItems.push({
-      name: "Quản lý tài khoản",
-      path: "/tai-khoan",
-      icon: "👥",
-    });
+  if (user.username === "admin") {
+    menuItems.push({ name: "Quản lý tài khoản", path: "/tai-khoan", icon: "👥" });
   }
 
   const handleLogout = () => {
@@ -36,73 +29,38 @@ function Layout() {
 
   return (
     <div className="app-layout">
-
       <aside className="sidebar">
-
         <div className="sidebar-logo">
           <div className="logo-icon">📦</div>
-
           <div>
             <strong>Quản Lý Kho</strong>
             <small>Tích hợp AI</small>
           </div>
         </div>
-
         <nav className="sidebar-menu">
           {menuItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
-              className={({ isActive }) =>
-                `menu-item ${isActive ? "active" : ""}`
-              }
+              className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
             >
-              <span className="menu-icon">
-                {item.icon}
-              </span>
-
+              <span className="menu-icon">{item.icon}</span>
               <span>{item.name}</span>
             </NavLink>
           ))}
         </nav>
-
         <div className="sidebar-bottom">
-
           <div className="sidebar-user">
-            <div className="avatar">
-              {(user.full_name || "U")
-                .charAt(0)
-                .toUpperCase()}
-            </div>
-
+            <div className="avatar">{(user.full_name || "U").charAt(0).toUpperCase()}</div>
             <div>
-              <strong>
-                {user.full_name || user.username}
-              </strong>
-
-              <small>
-                {user.role === "QuanLy"
-                  ? "Quản lý"
-                  : user.role}
-              </small>
+              <strong>{user.full_name || user.username}</strong>
+              <small>{user.role === "QuanLy" ? "Quản lý" : user.role}</small>
             </div>
           </div>
-
-          <button
-            className="logout-button"
-            onClick={handleLogout}
-          >
-            Đăng xuất
-          </button>
-
+          <button className="logout-button" onClick={handleLogout}>Đăng xuất</button>
         </div>
-
       </aside>
-
-      <main className="main-content">
-        <Outlet />
-      </main>
-
+      <main className="main-content"><Outlet /></main>
     </div>
   );
 }

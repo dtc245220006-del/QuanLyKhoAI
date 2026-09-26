@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+pymysql
+passlib
+pbkdf2
+python-jose[cryptography]
+python-dotenv
+google-genai
+pydantic
+chromadb
+sentence-transformers
+pytest
+httpx
