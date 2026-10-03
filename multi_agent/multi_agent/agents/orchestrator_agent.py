@@ -118,6 +118,7 @@ class OrchestratorAgent:
                     "data": rows,
                     "knowledge": documents,
                     "critic": critique,
+                    "claims": reasoning_result.get("claims", []),
                     "time_ms": round((time.perf_counter() - started) * 1000, 2),
                     **get_metrics(),
                 }
@@ -134,6 +135,7 @@ class OrchestratorAgent:
             "data": rows,
             "knowledge": documents,
             "critic": critique or {},
+            "claims": (reasoning_result or {}).get("claims", []),
             "time_ms": round((time.perf_counter() - started) * 1000, 2),
             **get_metrics(),
         }
