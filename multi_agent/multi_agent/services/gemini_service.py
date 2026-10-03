@@ -4,7 +4,11 @@ import re
 
 from dotenv import load_dotenv
 from google import genai
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parents[3]
+load_dotenv(BASE_DIR / ".env")
+load_dotenv(BASE_DIR / "backend" / ".env")
 load_dotenv()
 _api_key = os.getenv("GEMINI_API_KEY")
 _model = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
