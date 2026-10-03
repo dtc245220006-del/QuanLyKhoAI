@@ -24,6 +24,7 @@ Các trường có thể dùng:
 - group_name: tên nhóm hàng nếu có
 - only_low_stock: true/false
 - max_results: số lượng tối đa, mặc định 10
+- sort_order: asc | desc
 - keywords: danh sách từ khóa
 Không tự tạo tên hàng, nhóm hàng hoặc số lượng.
 Câu hỏi: {question}
@@ -50,5 +51,40 @@ Câu hỏi: {question}
         data.setdefault("only_low_stock", False)
         data.setdefault("max_results", 10)
         data.setdefault("keywords", [])
+        self._normalize_intent(question, data)
 
         return self.message(message.task_id, "database_agent", "structured_requirements", data)
+
+    @staticmethod
+    def _normalize_intent(question: str, data: dict) -> None:
+        """Apply deterministic rules for high-value inventory intents."""
+        text = question.lower().strip()
+
+        low_stock = any(
+            keyword in text
+            for keyword in (
+                "dưới mức tồn",
+                "tồn thấp",
+                "sắp hết",
+                "thiếu hàng",
+                "thiếu",
+                "cần nhập",
+                "nhập bổ sung",
+                "nguy cơ thiếu",
+                "cần kiểm tra để nhập",
+            )
+        )
+        descending = any(
+            keyword in text
+            for keyword in (
+                "cao nhất",
+                "nhiều nhất",
+                "lớn nhất",
+                "cao xuống thấp",
+            )
+        )
+
+        if low_stock:
+            data["only_low_stock"] = True
+            data["intent"] = "low_stock"
+        data["sort_order"] = "desc" if descending else "asc"
