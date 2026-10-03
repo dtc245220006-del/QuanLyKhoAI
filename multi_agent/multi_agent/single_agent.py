@@ -26,7 +26,7 @@ def build_intent(question: str) -> dict:
 
     sort_order = "desc" if any(
         keyword in text
-        for keyword in ("cao nhất", "nhiều nhất", "lớn nhất")
+        for keyword in ("cao nhất", "nhiều nhất", "lớn nhất", "cao xuống thấp")
     ) else "asc"
 
     group_name = None
@@ -73,7 +73,7 @@ def validate_claims(rows: list[dict], claims: list[dict]) -> list[str]:
 
 
 class SingleAgent:
-    """Một Agent duy nhất, trực tiếp dùng SQL + RAG rồi gọi Gemini một lần."""
+    """Một Agent duy nhất, trực tiếp dùng SQL + RAG rồi gọi Gemini."""
 
     def __init__(self):
         self.name = "single_agent"
@@ -89,6 +89,7 @@ class SingleAgent:
                 "llm_calls": 0,
                 "data": [],
                 "knowledge": [],
+                "claims": [],
                 "accuracy_check": {
                     "valid": False,
                     "errors": ["Câu hỏi không được để trống"],
@@ -148,6 +149,7 @@ KNOWLEDGE BASE:
                 **get_metrics(),
                 "data": rows,
                 "knowledge": documents,
+                "claims": [],
                 "error": str(exc),
                 "accuracy_check": {
                     "valid": False,
@@ -155,7 +157,8 @@ KNOWLEDGE BASE:
                 },
             }
 
-        errors = validate_claims(rows, reasoning.get("claims", []))
+        claims = reasoning.get("claims", [])
+        errors = validate_claims(rows, claims)
         elapsed_ms = (time.perf_counter() - started) * 1000
 
         return {
@@ -166,10 +169,11 @@ KNOWLEDGE BASE:
             **get_metrics(),
             "data": rows,
             "knowledge": documents,
+            "claims": claims,
             "critic": {
                 "status": "APPROVED" if not errors else "REJECT",
                 "errors": errors,
-                "checked_claims": len(reasoning.get("claims", [])),
+                "checked_claims": len(claims),
             },
             "accuracy_check": {
                 "valid": not errors,
