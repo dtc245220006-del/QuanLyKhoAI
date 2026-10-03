@@ -3,16 +3,24 @@ from pathlib import Path
 
 import chromadb
 from dotenv import load_dotenv
-from sentence_transformers import SentenceTransformer
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-CHROMA_PATH = os.getenv("CHROMA_PATH", str(BASE_DIR / "data" / "chroma_db"))
-MODEL_NAME = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+CHROMA_PATH = os.getenv(
+    "CHROMA_PATH",
+    str(BASE_DIR / "data" / "chroma_db")
+)
+MODEL_NAME = os.getenv(
+    "EMBEDDING_MODEL",
+    "all-MiniLM-L6-v2"
+)
 
 _client = chromadb.PersistentClient(path=CHROMA_PATH)
-_collection = _client.get_or_create_collection(name="warehouse_knowledge")
+_collection = _client.get_or_create_collection(
+    name="warehouse_knowledge"
+)
+
 _encoder = None
 
 DEFAULT_DOCS = [
@@ -26,16 +34,24 @@ DEFAULT_DOCS = [
 
 def _get_encoder():
     global _encoder
+
     if _encoder is None:
+        # Chỉ import khi thực sự cần dùng RAG
+        from sentence_transformers import SentenceTransformer
+
         _encoder = SentenceTransformer(MODEL_NAME)
+
     return _encoder
 
 
 def ensure_seeded():
     existing = _collection.count()
+
     if existing:
         return
+
     embeddings = _get_encoder().encode(DEFAULT_DOCS).tolist()
+
     _collection.add(
         ids=[f"doc-{i}" for i in range(len(DEFAULT_DOCS))],
         documents=DEFAULT_DOCS,
@@ -45,7 +61,14 @@ def ensure_seeded():
 
 def search_knowledge(question: str, top_k: int = 4):
     ensure_seeded()
+
     embedding = _get_encoder().encode([question]).tolist()
-    result = _collection.query(query_embeddings=embedding, n_results=top_k)
+
+    result = _collection.query(
+        query_embeddings=embedding,
+        n_results=top_k
+    )
+
     docs = result.get("documents", [[]])[0]
+
     return [{"text": text} for text in docs]

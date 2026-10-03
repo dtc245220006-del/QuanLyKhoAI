@@ -17,3 +17,4 @@ backend/.env
 # Multi-Agent runtime data
 multi_agent/**/data/
 multi_agent/**/logs/
+Project_Smart_Bus_Ticketing_System_ictu/
