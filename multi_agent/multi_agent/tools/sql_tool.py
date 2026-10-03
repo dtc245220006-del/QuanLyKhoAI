@@ -35,6 +35,9 @@ def search_inventory(intent: dict):
         group_name = intent.get("group_name")
         only_low_stock = bool(intent.get("only_low_stock", False))
         max_results = min(max(int(intent.get("max_results", 10)), 1), 50)
+        sort_order = str(intent.get("sort_order", "asc")).upper()
+        if sort_order not in {"ASC", "DESC"}:
+            sort_order = "ASC"
 
         if item_name:
             where.append("h.ten_hang LIKE %s")
@@ -61,7 +64,7 @@ def search_inventory(intent: dict):
         """
         if where:
             sql += " WHERE " + " AND ".join(where)
-        sql += " ORDER BY t.so_luong ASC LIMIT %s"
+        sql += f" ORDER BY t.so_luong {sort_order} LIMIT %s"
         params.append(max_results)
 
         with conn.cursor() as cursor:
