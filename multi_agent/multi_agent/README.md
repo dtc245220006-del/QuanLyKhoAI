@@ -1,14 +1,17 @@
 # Multi-Agent AI — QuanLyKhoAI
 
 ## Mục tiêu
-Triển khai Multi-Agent cho tư vấn/phân tích kho dựa trên dữ liệu của hệ thống Quản lý Kho.
+
+Triển khai hệ thống Multi-Agent cho tư vấn/phân tích kho dựa trên dữ liệu MySQL.
 
 ## Workflow
+
 User → Orchestrator → Analyst → Database Agent → SQL Tool/MySQL
 → RAG Agent → Vector Search/ChromaDB → Reasoning → Critic
 → Reject/Retry hoặc Approved → Response.
 
 ## Agent
+
 1. Orchestrator Agent
 2. Analyst Agent
 3. Database Agent
@@ -17,15 +20,46 @@ User → Orchestrator → Analyst → Database Agent → SQL Tool/MySQL
 6. Critic Agent
 7. Response Agent
 
-## API
-`POST /multi-agent/advisor`
+## Single-Agent baseline
 
-```json
-{"question":"Hàng nào đang dưới mức tồn tối thiểu?"}
-```
+Để có cơ sở so sánh, module có một baseline Single-Agent:
 
-## Logging
-`multi_agent/multi_agent/logs/agent_execution.log`
+Question → SQL Tool + Vector Search Tool → Gemini → Answer
+
+API:
+- POST /multi-agent/advisor — Multi-Agent
+- POST /multi-agent/single-agent/advisor — Single-Agent
 
 ## Benchmark
-`benchmark.py` có hàm `run_single_agent()` để so sánh với workflow Multi-Agent. Không điền số liệu giả vào báo cáo.
+
+Chạy từ thư mục multi_agent:
+
+    python -m multi_agent.benchmark
+
+Benchmark dùng cùng bộ 10 câu hỏi cho cả hai kiến trúc và ghi:
+- Accuracy
+- Response time
+- LLM calls
+- oracle_reason
+- retry_count
+
+Kết quả:
+multi_agent/multi_agent_benchmark.json
+
+Tài liệu:
+docs/benchmark-guide.md
+docs/multi-agent-comparison.md
+
+## Testing
+
+Unit tests nằm tại:
+multi_agent/multi_agent/tests/
+
+Kết quả runtime phải được chạy và ghi nhận thực tế trước khi điền báo cáo.
+
+## Logging
+
+Runtime log:
+multi_agent/multi_agent/logs/agent_execution.log
+
+Mỗi record có task_id, agent nguồn/đích, message type, status; retry record có attempt và errors.
