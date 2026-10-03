@@ -90,7 +90,7 @@ class OrchestratorAgent:
                 from_agent="reasoning_agent",
                 to_agent="critic_agent",
                 message_type="critic_request",
-                payload={"reasoning": reasoning_result, "rows": rows},
+                payload={"reasoning": reasoning_result, "rows": rows, "question": question},
             ))
             self.bus.emit(critic_msg)
             if critic_msg.status == "error":
