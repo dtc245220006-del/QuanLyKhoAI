@@ -23,18 +23,41 @@ Hệ thống quản lý kho tích hợp AI.
 ## Multi-Agent
 Orchestrator → Analyst → Database/SQL → RAG/Vector → Reasoning → Critic → Retry → Response.
 
+## Single-Agent baseline
+
+Repository có baseline Single-Agent để phục vụ yêu cầu so sánh kiến trúc:
+
+Question → SQL Tool + Vector Search Tool → Gemini → Answer
+
+API:
+- POST /multi-agent/advisor — Multi-Agent
+- POST /multi-agent/single-agent/advisor — Single-Agent
+
+## Benchmark
+
+Từ thư mục gốc:
+
+    cd multi_agent
+    python -m multi_agent.benchmark
+
+Kết quả:
+multi_agent/multi_agent_benchmark.json
+
+Tài liệu:
+- docs/benchmark-guide.md
+- docs/multi-agent-comparison.md
+- docs/test-plan.md
+- docs/test-report.md
+
 ## Cấu trúc
-```text
+
 .agents/skills/      AI-Augmented SDLC skills
-docs/                requirements, architecture, ERD, testing, review
-backend/             FastAPI + MySQL
-frontend/            React
-multi_agent/         Multi-Agent implementation
-database/            MySQL schema
-```
+docs/                requirements, architecture, ERD, testing, benchmark
+backend/              FastAPI + MySQL
+frontend/             React
+multi_agent/         Multi-Agent + Single-Agent benchmark
+database/             MySQL schema
 
 ## Secrets
-Không commit `backend/.env` hoặc API key.
 
-## Bộ bổ sung
-Xem `APPLY_PATCH.md` để áp dụng các phần MySQL, Multi-Agent, UI và tài liệu.
+Không commit backend/.env hoặc API key.
