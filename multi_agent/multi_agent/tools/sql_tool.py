@@ -1,8 +1,15 @@
 import os
+from pathlib import Path
 
 import pymysql
 from dotenv import load_dotenv
 
+# The benchmark is normally run from /multi_agent, while the project secrets
+# live in /backend/.env. Load that file explicitly so CLI runs use the same
+# database configuration as the FastAPI backend.
+BASE_DIR = Path(__file__).resolve().parents[3]
+load_dotenv(BASE_DIR / ".env")
+load_dotenv(BASE_DIR / "backend" / ".env")
 load_dotenv()
 
 
