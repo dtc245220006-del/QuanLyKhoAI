@@ -1,11 +1,11 @@
 from unittest.mock import Mock, patch
 
-from multi_agent.multi_agent.multi_agent.agents.agent_message import AgentMessage
-from multi_agent.multi_agent.multi_agent.agents.analyst_agent import AnalystAgent
-from multi_agent.multi_agent.multi_agent.agents.critic_agent import CriticAgent
-from multi_agent.multi_agent.multi_agent.agents.reasoning_agent import ReasoningAgent
-from multi_agent.multi_agent.multi_agent.agents.response_agent import ResponseAgent
-from multi_agent.multi_agent.multi_agent.agents.orchestrator_agent import OrchestratorAgent
+from multi_agent.multi_agent.agents.agent_message import AgentMessage
+from multi_agent.multi_agent.agents.analyst_agent import AnalystAgent
+from multi_agent.multi_agent.agents.critic_agent import CriticAgent
+from multi_agent.multi_agent.agents.reasoning_agent import ReasoningAgent
+from multi_agent.multi_agent.agents.response_agent import ResponseAgent
+from multi_agent.multi_agent.agents.orchestrator_agent import OrchestratorAgent
 
 
 def test_01_structured_message():
@@ -173,3 +173,174 @@ def test_11_orchestrator_returns_rejected_after_retry_limit():
     assert out["success"] is False
     assert out["status"] == "REJECTED"
     assert out["retry_count"] == 1
+
+
+def test_12_analyst_normalizes_restock_question_to_low_stock():
+    with patch(
+        "multi_agent.multi_agent.agents.analyst_agent.generate_json",
+        return_value={
+            "intent": "inventory_search",
+            "only_low_stock": False,
+            "item_name": None,
+            "group_name": None,
+            "max_results": 10,
+            "keywords": [],
+        },
+    ):
+        result = AnalystAgent().process(AgentMessage(
+            task_id="TASK-012",
+            from_agent="orchestrator",
+            to_agent="analyst_agent",
+            message_type="analyze_request",
+            payload={"question": "Hãy cho biết các mặt hàng cần nhập bổ sung."},
+        ))
+
+    assert result.status == "success"
+    assert result.payload["only_low_stock"] is True
+    assert result.payload["intent"] == "low_stock"
+
+
+def test_13_analyst_normalizes_descending_sort():
+    with patch(
+        "multi_agent.multi_agent.agents.analyst_agent.generate_json",
+        return_value={
+            "intent": "inventory_search",
+            "only_low_stock": False,
+            "item_name": None,
+            "group_name": None,
+            "max_results": 10,
+            "keywords": [],
+        },
+    ):
+        result = AnalystAgent().process(AgentMessage(
+            task_id="TASK-013",
+            from_agent="orchestrator",
+            to_agent="analyst_agent",
+            message_type="analyze_request",
+            payload={"question": "Hãy liệt kê tồn kho từ cao xuống thấp."},
+        ))
+
+    assert result.payload["sort_order"] == "desc"
+
+
+def test_14_critic_rejects_sufficient_stock_for_restock_question():
+    result = CriticAgent().process(AgentMessage(
+        task_id="TASK-014",
+        from_agent="reasoning_agent",
+        to_agent="critic_agent",
+        message_type="critic_request",
+        payload={
+            "question": "Hãy cho biết các mặt hàng cần nhập bổ sung.",
+            "rows": [
+                {"ma_hang": 1, "ten_hang": "Màn hình", "so_luong_ton": 0, "ton_toi_thieu": 10},
+                {"ma_hang": 2, "ten_hang": "Chuột", "so_luong_ton": 15, "ton_toi_thieu": 10},
+            ],
+            "reasoning": {
+                "answer": "Cần nhập màn hình và chuột.",
+                "claims": [
+                    {"ma_hang": 1, "ten_hang": "Màn hình", "so_luong_ton": 0},
+                    {"ma_hang": 2, "ten_hang": "Chuột", "so_luong_ton": 15},
+                ],
+            },
+        },
+    ))
+
+    assert result.payload["status"] == "REJECT"
+
+
+def test_15_critic_rejects_wrong_stock_sort_order():
+    rows = [
+        {"ma_hang": 1, "ten_hang": "Màn hình", "so_luong_ton": 0, "ton_toi_thieu": 10},
+        {"ma_hang": 2, "ten_hang": "Ram", "so_luong_ton": 4, "ton_toi_thieu": 5},
+        {"ma_hang": 3, "ten_hang": "Chuột", "so_luong_ton": 15, "ton_toi_thieu": 10},
+        {"ma_hang": 4, "ten_hang": "Laptop", "so_luong_ton": 50, "ton_toi_thieu": 10},
+    ]
+    result = CriticAgent().process(AgentMessage(
+        task_id="TASK-015",
+        from_agent="reasoning_agent",
+        to_agent="critic_agent",
+        message_type="critic_request",
+        payload={
+            "question": "Hãy liệt kê tồn kho từ cao xuống thấp.",
+            "rows": rows,
+            "reasoning": {
+                "answer": "Màn hình, Ram, Chuột, Laptop.",
+                "claims": [
+                    {"ma_hang": r["ma_hang"], "ten_hang": r["ten_hang"], "so_luong_ton": r["so_luong_ton"]}
+                    for r in rows
+                ],
+            },
+        },
+    ))
+
+    assert result.payload["status"] == "REJECT"
+
+
+def test_16_sql_tool_parameterizes_item_and_filters_low_stock(monkeypatch):
+    from multi_agent.multi_agent.tools import sql_tool
+
+    class FakeCursor:
+        def __init__(self):
+            self.sql = ""
+            self.params = None
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            return False
+
+        def execute(self, sql, params):
+            self.sql = sql
+            self.params = params
+
+        def fetchall(self):
+            return [{"ma_hang": 1, "ten_hang": "Chuột", "so_luong_ton": 2}]
+
+    class FakeConnection:
+        def __init__(self):
+            self.fake_cursor = FakeCursor()
+            self.closed = False
+
+        def cursor(self):
+            return self.fake_cursor
+
+        def close(self):
+            self.closed = True
+
+    connection = FakeConnection()
+    monkeypatch.setattr(sql_tool, "get_connection", lambda: connection)
+
+    rows = sql_tool.search_inventory({
+        "item_name": "Chuột",
+        "only_low_stock": True,
+        "max_results": 10,
+        "sort_order": "DESC",
+    })
+
+    assert "h.ten_hang LIKE %s" in connection.fake_cursor.sql
+    assert "t.so_luong < h.ton_toi_thieu" in connection.fake_cursor.sql
+    assert "ORDER BY t.so_luong DESC LIMIT %s" in connection.fake_cursor.sql
+    assert connection.fake_cursor.params == ["%Chuột%", 10]
+    assert rows[0]["ten_hang"] == "Chuột"
+    assert connection.closed is True
+
+
+def test_17_rag_agent_returns_knowledge_documents():
+    from multi_agent.multi_agent.agents.rag_agent import RAGAgent
+
+    documents = [{"text": "Chỉ cập nhật tồn kho khi phiếu nhập được xác nhận."}]
+    with patch(
+        "multi_agent.multi_agent.agents.rag_agent.search_knowledge",
+        return_value=documents,
+    ):
+        result = RAGAgent().process(AgentMessage(
+            task_id="TASK-017",
+            from_agent="orchestrator",
+            to_agent="rag_agent",
+            message_type="rag_request",
+            payload={"question": "Khi nào cập nhật tồn kho?"},
+        ))
+
+    assert result.status == "success"
+    assert result.payload["documents"] == documents
