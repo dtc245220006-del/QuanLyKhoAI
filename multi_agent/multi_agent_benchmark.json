@@ -1,0 +1,245 @@
+{
+  "question_count": 10,
+  "oracle": "Data-grounded claim validation against the live MySQL result set.",
+  "single_agent": {
+    "summary": {
+      "accuracy_percent": 100.0,
+      "avg_time_ms": 2732.84,
+      "avg_llm_calls": 1,
+      "total_llm_calls": 10
+    },
+    "results": [
+      {
+        "id": "SINGLE-01",
+        "question": "Hàng nào đang dưới mức tồn tối thiểu?",
+        "accuracy": 1,
+        "oracle_reason": "Tất cả claim đều thỏa tồn < mức tối thiểu.",
+        "time_ms": 15633.92,
+        "llm_calls": 1,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Các mặt hàng đang có số lượng tồn dưới mức tồn tối thiểu gồm: màn hình (tồn 0, tối thiểu 10) và Ram (tồn 4, tối thiểu 5)."
+      },
+      {
+        "id": "SINGLE-02",
+        "question": "Cho tôi xem tồn kho hiện tại.",
+        "accuracy": 1,
+        "oracle_reason": "Claims đã được đối chiếu với dữ liệu SQL.",
+        "time_ms": 1497.38,
+        "llm_calls": 1,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Tình hình tồn kho hiện tại bao gồm: màn hình (0 cái), Ram (4 cái), Chuột (15 cái) và laptop (50 cái)."
+      },
+      {
+        "id": "SINGLE-03",
+        "question": "Có những mặt hàng nào trong kho?",
+        "accuracy": 1,
+        "oracle_reason": "Claims đã được đối chiếu với dữ liệu SQL.",
+        "time_ms": 1276.41,
+        "llm_calls": 1,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Trong kho hiện có các mặt hàng: màn hình (số lượng tồn: 0), Ram (số lượng tồn: 4), Chuột (số lượng tồn: 15) và laptop (số lượng tồn: 50)."
+      },
+      {
+        "id": "SINGLE-04",
+        "question": "Mặt hàng nào có số lượng tồn cao nhất?",
+        "accuracy": 1,
+        "oracle_reason": "Claim chứa mặt hàng có tồn cao nhất.",
+        "time_ms": 1041.45,
+        "llm_calls": 1,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Mặt hàng có số lượng tồn cao nhất là laptop với số lượng tồn là 50."
+      },
+      {
+        "id": "SINGLE-05",
+        "question": "Có mặt hàng nào đang có nguy cơ thiếu hàng không?",
+        "accuracy": 1,
+        "oracle_reason": "Tất cả claim đều thỏa tồn < mức tối thiểu.",
+        "time_ms": 1203.13,
+        "llm_calls": 1,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Có các mặt hàng đang có nguy cơ thiếu hàng (số lượng tồn thấp hơn mức tồn tối thiểu) bao gồm: màn hình (tồn 0, tối thiểu 10) và Ram (tồn 4, tối thiểu 5)."
+      },
+      {
+        "id": "SINGLE-06",
+        "question": "Hãy cho biết các mặt hàng cần nhập bổ sung.",
+        "accuracy": 1,
+        "oracle_reason": "Tất cả claim đều thỏa tồn < mức tối thiểu.",
+        "time_ms": 1267.76,
+        "llm_calls": 1,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Các mặt hàng cần nhập bổ sung do có số lượng tồn thấp hơn mức tồn tối thiểu bao gồm: màn hình (tồn 0, tối thiểu 10) và Ram (tồn 4, tối thiểu 5)."
+      },
+      {
+        "id": "SINGLE-07",
+        "question": "Mặt hàng nào có số lượng tồn thấp nhất?",
+        "accuracy": 1,
+        "oracle_reason": "Tất cả claim đều thỏa tồn < mức tối thiểu.",
+        "time_ms": 1145.53,
+        "llm_calls": 1,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Mặt hàng có số lượng tồn thấp nhất là màn hình với số lượng tồn là 0."
+      },
+      {
+        "id": "SINGLE-08",
+        "question": "Hãy liệt kê tồn kho từ cao xuống thấp.",
+        "accuracy": 1,
+        "oracle_reason": "Claims được sắp xếp giảm dần theo tồn kho.",
+        "time_ms": 1417.81,
+        "llm_calls": 1,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Danh sách tồn kho được liệt kê từ cao xuống thấp như sau: laptop (50), Chuột (15), Ram (4), và màn hình (0)."
+      },
+      {
+        "id": "SINGLE-09",
+        "question": "Hãy giải thích tình trạng tồn kho hiện tại của kho.",
+        "accuracy": 1,
+        "oracle_reason": "Claims đã được đối chiếu với dữ liệu SQL.",
+        "time_ms": 1625.95,
+        "llm_calls": 1,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Tình trạng tồn kho hiện tại cho thấy có mặt hàng hết sạch (màn hình với 0 sản phẩm) và mặt hàng dưới mức tồn tối thiểu (Ram với 4 sản phẩm, thấp hơn mức tối thiểu là 5), cần được kiểm tra để đề xuất nhập bổ sung. Trong khi đó, chuột (15 sản phẩm) và laptop (50 sản phẩm) đều đang ở mức an toàn hoặc cao hơn mức tối thiểu."
+      },
+      {
+        "id": "SINGLE-10",
+        "question": "Mặt hàng nào cần kiểm tra để nhập bổ sung?",
+        "accuracy": 1,
+        "oracle_reason": "Tất cả claim đều thỏa tồn < mức tối thiểu.",
+        "time_ms": 1219.08,
+        "llm_calls": 1,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Các mặt hàng cần kiểm tra để nhập bổ sung do có số lượng tồn thấp hơn mức tồn tối thiểu là màn hình (mã hàng 1) và Ram (mã hàng 3)."
+      }
+    ]
+  },
+  "multi_agent": {
+    "summary": {
+      "accuracy_percent": 100.0,
+      "avg_time_ms": 1488.47,
+      "avg_llm_calls": 3,
+      "total_llm_calls": 30
+    },
+    "results": [
+      {
+        "id": "MULTI-01",
+        "question": "Hàng nào đang dưới mức tồn tối thiểu?",
+        "accuracy": 1,
+        "oracle_reason": "Tất cả claim đều thỏa tồn < mức tối thiểu.",
+        "time_ms": 2927.17,
+        "llm_calls": 3,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Các mặt hàng đang dưới mức tồn tối thiểu là màn hình (mã hàng 1) với số lượng tồn là 0 và Ram (mã hàng 3) với số lượng tồn là 4."
+      },
+      {
+        "id": "MULTI-02",
+        "question": "Cho tôi xem tồn kho hiện tại.",
+        "accuracy": 1,
+        "oracle_reason": "Claims đã được đối chiếu với dữ liệu SQL.",
+        "time_ms": 3400.64,
+        "llm_calls": 3,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Tồn kho hiện tại: màn hình tồn 0 cái, Ram tồn 4 cái, Chuột tồn 15 cái, và laptop tồn 50 cái. \n\nLưu ý: Màn hình và Ram hiện đang có số lượng tồn thấp hơn mức tối thiểu, cần xem xét tạo đề xuất nhập hàng để AI phân tích và trình Quản lý phê duyệt."
+      },
+      {
+        "id": "MULTI-03",
+        "question": "Có những mặt hàng nào trong kho?",
+        "accuracy": 1,
+        "oracle_reason": "Claims đã được đối chiếu với dữ liệu SQL.",
+        "time_ms": 1423.54,
+        "llm_calls": 3,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Dữ liệu tồn kho phù hợp: màn hình (tồn 0), Ram (tồn 4), Chuột (tồn 15), laptop (tồn 50)."
+      },
+      {
+        "id": "MULTI-04",
+        "question": "Mặt hàng nào có số lượng tồn cao nhất?",
+        "accuracy": 1,
+        "oracle_reason": "Claim chứa mặt hàng có tồn cao nhất.",
+        "time_ms": 1461.84,
+        "llm_calls": 3,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Mặt hàng có số lượng tồn cao nhất là laptop với 50 sản phẩm."
+      },
+      {
+        "id": "MULTI-05",
+        "question": "Có mặt hàng nào đang có nguy cơ thiếu hàng không?",
+        "accuracy": 1,
+        "oracle_reason": "Tất cả claim đều thỏa tồn < mức tối thiểu.",
+        "time_ms": 908.32,
+        "llm_calls": 3,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Dữ liệu tồn kho phù hợp: màn hình (tồn 0), Ram (tồn 4)."
+      },
+      {
+        "id": "MULTI-06",
+        "question": "Hãy cho biết các mặt hàng cần nhập bổ sung.",
+        "accuracy": 1,
+        "oracle_reason": "Tất cả claim đều thỏa tồn < mức tối thiểu.",
+        "time_ms": 891.76,
+        "llm_calls": 3,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Dữ liệu tồn kho phù hợp: màn hình (tồn 0), Ram (tồn 4)."
+      },
+      {
+        "id": "MULTI-07",
+        "question": "Mặt hàng nào có số lượng tồn thấp nhất?",
+        "accuracy": 1,
+        "oracle_reason": "Tất cả claim đều thỏa tồn < mức tối thiểu.",
+        "time_ms": 880.05,
+        "llm_calls": 3,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Dữ liệu tồn kho phù hợp: màn hình (tồn 0), Ram (tồn 4)."
+      },
+      {
+        "id": "MULTI-08",
+        "question": "Hãy liệt kê tồn kho từ cao xuống thấp.",
+        "accuracy": 1,
+        "oracle_reason": "Claims được sắp xếp giảm dần theo tồn kho.",
+        "time_ms": 1382.35,
+        "llm_calls": 3,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Dữ liệu tồn kho phù hợp: laptop (tồn 50), Chuột (tồn 15), Ram (tồn 4), màn hình (tồn 0)."
+      },
+      {
+        "id": "MULTI-09",
+        "question": "Hãy giải thích tình trạng tồn kho hiện tại của kho.",
+        "accuracy": 1,
+        "oracle_reason": "Claims đã được đối chiếu với dữ liệu SQL.",
+        "time_ms": 818.34,
+        "llm_calls": 3,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Dữ liệu tồn kho phù hợp: màn hình (tồn 0), Ram (tồn 4), Chuột (tồn 15), laptop (tồn 50)."
+      },
+      {
+        "id": "MULTI-10",
+        "question": "Mặt hàng nào cần kiểm tra để nhập bổ sung?",
+        "accuracy": 1,
+        "oracle_reason": "Tất cả claim đều thỏa tồn < mức tối thiểu.",
+        "time_ms": 790.74,
+        "llm_calls": 3,
+        "status": "APPROVED",
+        "retry_count": 0,
+        "answer": "Dữ liệu tồn kho phù hợp: màn hình (tồn 0), Ram (tồn 4)."
+      }
+    ]
+  },
+  "generated_at": "2026-10-03T09:36:40"
+}

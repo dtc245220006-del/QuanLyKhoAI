@@ -1,6 +1,10 @@
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+ROOT = str(Path(__file__).resolve().parents[2])
+
+# Đưa thư mục chứa package multi_agent lên đầu sys.path
+if ROOT in sys.path:
+    sys.path.remove(ROOT)
+
+sys.path.insert(0, ROOT)

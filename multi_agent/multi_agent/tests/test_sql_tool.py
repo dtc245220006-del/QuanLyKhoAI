@@ -15,4 +15,4 @@ def test_12_sql_tool_uses_parameterized_query():
 
     sql, params = cursor.execute.call_args.args
     assert "%s" in sql
-    assert "Chuột" in params
+    assert params == ["%Chuột%", 10]
