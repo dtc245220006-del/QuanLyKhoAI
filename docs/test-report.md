@@ -4,10 +4,11 @@
 
 Module AI có hai nhóm automated tests tại `multi_agent/multi_agent/tests/`:
 
-- 17 Test Case cho Multi-Agent, bao gồm AgentMessage, Analyst, SQL Tool, RAG Agent, Reasoning, Critic, Response và Orchestrator/retry.
-- 2 Test Case cho Single-Agent baseline.
+- 17 Test Case trong `test_multi_agent.py`, bao gồm AgentMessage, Analyst, SQL Tool, RAG Agent, Reasoning, Critic, Response và Orchestrator/retry.
+- 2 Test Case cho Single-Agent baseline trong `test_single_agent.py`.
+- 1 Test Case SQL Tool độc lập trong `test_sql_tool.py`.
 
-Tổng cộng: **19 Test Case tự động trong module AI**. Đây là số lượng test case được định nghĩa trong mã nguồn; trạng thái pass/fail phải được cập nhật sau khi chạy pytest trên môi trường triển khai.
+Tổng cộng: **20 Test Case tự động được định nghĩa trong module AI**. Đây là số lượng test case được định nghĩa trong mã nguồn; trạng thái pass/fail phải được cập nhật sau khi chạy pytest trên môi trường triển khai.
 
 ## Phạm vi kiểm thử tự động
 
@@ -31,7 +32,7 @@ Từ thư mục gốc repository, kích hoạt đúng virtual environment rồi 
 
     python -m pytest multi_agent/multi_agent/tests -q
 
-Kết quả mong đợi về số lượng: 19 tests collected. Chỉ ghi nhận "19 passed" nếu output thực tế của pytest xác nhận tất cả đều pass. Nếu có lỗi, lưu lại traceback và sửa nguyên nhân trước khi cập nhật báo cáo.
+Kết quả mong đợi về số lượng: 20 tests collected. Chỉ ghi nhận "19 passed" nếu output thực tế của pytest xác nhận tất cả đều pass. Nếu có lỗi, lưu lại traceback và sửa nguyên nhân trước khi cập nhật báo cáo.
 
 ## Benchmark Single-Agent vs Multi-Agent
 
