@@ -277,7 +277,7 @@ def test_15_critic_rejects_wrong_stock_sort_order():
 
 
 def test_16_sql_tool_parameterizes_item_and_filters_low_stock(monkeypatch):
-    from multi_agent.multi_agent.tools import sql_tool
+    from multi_agent.tools import sql_tool
 
     class FakeCursor:
         def __init__(self):
