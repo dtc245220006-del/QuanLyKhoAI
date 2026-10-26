@@ -1,6 +1,6 @@
 from unittest.mock import patch, MagicMock
 
-from multi_agent.multi_agent.tools.sql_tool import search_inventory
+from multi_agent.tools.sql_tool import search_inventory
 
 
 def test_12_sql_tool_uses_parameterized_query():
@@ -10,7 +10,7 @@ def test_12_sql_tool_uses_parameterized_query():
     conn = MagicMock()
     conn.cursor.return_value = cursor
 
-    with patch("multi_agent.multi_agent.tools.sql_tool.get_connection", return_value=conn):
+    with patch("multi_agent.tools.sql_tool.get_connection", return_value=conn):
         search_inventory({"item_name": "Chuột", "max_results": 10})
 
     sql, params = cursor.execute.call_args.args
