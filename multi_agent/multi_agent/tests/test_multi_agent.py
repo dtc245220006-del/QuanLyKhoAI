@@ -1,11 +1,11 @@
 from unittest.mock import Mock, patch
 
-from multi_agent.multi_agent.agents.agent_message import AgentMessage
-from multi_agent.multi_agent.agents.analyst_agent import AnalystAgent
-from multi_agent.multi_agent.agents.critic_agent import CriticAgent
-from multi_agent.multi_agent.agents.reasoning_agent import ReasoningAgent
-from multi_agent.multi_agent.agents.response_agent import ResponseAgent
-from multi_agent.multi_agent.agents.orchestrator_agent import OrchestratorAgent
+from multi_agent.agents.agent_message import AgentMessage
+from multi_agent.agents.analyst_agent import AnalystAgent
+from multi_agent.agents.critic_agent import CriticAgent
+from multi_agent.agents.reasoning_agent import ReasoningAgent
+from multi_agent.agents.response_agent import ResponseAgent
+from multi_agent.agents.orchestrator_agent import OrchestratorAgent
 
 
 def test_01_structured_message():
@@ -22,7 +22,7 @@ def test_01_structured_message():
 
 def test_02_analyst_fallback_for_low_stock():
     agent = AnalystAgent()
-    with patch("multi_agent.multi_agent.agents.analyst_agent.generate_json", side_effect=RuntimeError()):
+    with patch("multi_agent.agents.analyst_agent.generate_json", side_effect=RuntimeError()):
         result = agent.process(AgentMessage(
             task_id="TASK-002",
             from_agent="orchestrator",
@@ -88,7 +88,7 @@ def test_06_critic_rejects_unknown_item():
 
 
 def test_07_reasoning_fallback_uses_database_data():
-    with patch("multi_agent.multi_agent.agents.reasoning_agent.generate_json", side_effect=RuntimeError()):
+    with patch("multi_agent.agents.reasoning_agent.generate_json", side_effect=RuntimeError()):
         result = ReasoningAgent().process(AgentMessage(
             task_id="TASK-007", from_agent="rag_agent", to_agent="reasoning_agent",
             message_type="reasoning_request",
@@ -102,7 +102,7 @@ def test_07_reasoning_fallback_uses_database_data():
 
 
 def test_08_response_fallback():
-    with patch("multi_agent.multi_agent.agents.response_agent.generate_text", side_effect=RuntimeError()):
+    with patch("multi_agent.agents.response_agent.generate_text", side_effect=RuntimeError()):
         result = ResponseAgent().process(AgentMessage(
             task_id="TASK-008", from_agent="critic_agent", to_agent="response_agent",
             message_type="approved_result",
@@ -177,7 +177,7 @@ def test_11_orchestrator_returns_rejected_after_retry_limit():
 
 def test_12_analyst_normalizes_restock_question_to_low_stock():
     with patch(
-        "multi_agent.multi_agent.agents.analyst_agent.generate_json",
+        "multi_agent.agents.analyst_agent.generate_json",
         return_value={
             "intent": "inventory_search",
             "only_low_stock": False,
@@ -202,7 +202,7 @@ def test_12_analyst_normalizes_restock_question_to_low_stock():
 
 def test_13_analyst_normalizes_descending_sort():
     with patch(
-        "multi_agent.multi_agent.agents.analyst_agent.generate_json",
+        "multi_agent.agents.analyst_agent.generate_json",
         return_value={
             "intent": "inventory_search",
             "only_low_stock": False,
@@ -327,11 +327,11 @@ def test_16_sql_tool_parameterizes_item_and_filters_low_stock(monkeypatch):
 
 
 def test_17_rag_agent_returns_knowledge_documents():
-    from multi_agent.multi_agent.agents.rag_agent import RAGAgent
+    from multi_agent.agents.rag_agent import RAGAgent
 
     documents = [{"text": "Chỉ cập nhật tồn kho khi phiếu nhập được xác nhận."}]
     with patch(
-        "multi_agent.multi_agent.agents.rag_agent.search_knowledge",
+        "multi_agent.agents.rag_agent.search_knowledge",
         return_value=documents,
     ):
         result = RAGAgent().process(AgentMessage(
