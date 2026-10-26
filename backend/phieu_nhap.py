@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import wraps
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -369,7 +370,25 @@ def delete_phieu_nhap(
 # XÁC NHẬN PHIẾU NHẬP
 # =========================================================
 
+def rollback_session_on_error(handler):
+    """Keep a failed receipt confirmation from leaving partial ORM state behind."""
+    @wraps(handler)
+    def wrapped(*args, **kwargs):
+        db = kwargs.get("db")
+        if db is None:
+            db = args[1]
+
+        try:
+            return handler(*args, **kwargs)
+        except Exception:
+            db.rollback()
+            raise
+
+    return wrapped
+
+
 @router.put("/{phieu_nhap_id}/xac-nhan")
+@rollback_session_on_error
 def xac_nhan_phieu_nhap(
     phieu_nhap_id: int,
     db: Session = Depends(get_db)
@@ -491,6 +510,7 @@ def xac_nhan_phieu_nhap(
 
     phieu.trang_thai = "DaNhap"
 
+    db.flush()
     db.commit()
     db.refresh(phieu)
 
