@@ -1,19 +1,19 @@
 from unittest.mock import patch
 
-from multi_agent.multi_agent.single_agent import SingleAgent
+from multi_agent.single_agent import SingleAgent
 
 
 def test_single_agent_uses_one_llm_call():
     rows = [{"ma_hang": 1, "ten_hang": "Chuột", "so_luong_ton": 5}]
 
     with patch(
-        "multi_agent.multi_agent.single_agent.search_inventory",
+        "multi_agent.single_agent.search_inventory",
         return_value=rows,
     ), patch(
-        "multi_agent.multi_agent.single_agent.search_knowledge",
+        "multi_agent.single_agent.search_knowledge",
         return_value=[],
     ), patch(
-        "multi_agent.multi_agent.single_agent.generate_json",
+        "multi_agent.single_agent.generate_json",
         return_value={
             "answer": "Chuột đang tồn 5.",
             "claims": [
@@ -26,7 +26,7 @@ def test_single_agent_uses_one_llm_call():
             "recommendation": "",
         },
     ), patch(
-        "multi_agent.multi_agent.single_agent.get_metrics",
+        "multi_agent.single_agent.get_metrics",
         return_value={"llm_calls": 1},
     ):
         result = SingleAgent().run("Tồn kho của chuột là bao nhiêu?")
@@ -41,13 +41,13 @@ def test_single_agent_rejects_unknown_claim():
     rows = [{"ma_hang": 1, "ten_hang": "Chuột", "so_luong_ton": 5}]
 
     with patch(
-        "multi_agent.multi_agent.single_agent.search_inventory",
+        "multi_agent.single_agent.search_inventory",
         return_value=rows,
     ), patch(
-        "multi_agent.multi_agent.single_agent.search_knowledge",
+        "multi_agent.single_agent.search_knowledge",
         return_value=[],
     ), patch(
-        "multi_agent.multi_agent.single_agent.generate_json",
+        "multi_agent.single_agent.generate_json",
         return_value={
             "answer": "Có sản phẩm X.",
             "claims": [
@@ -60,7 +60,7 @@ def test_single_agent_rejects_unknown_claim():
             "recommendation": "",
         },
     ), patch(
-        "multi_agent.multi_agent.single_agent.get_metrics",
+        "multi_agent.single_agent.get_metrics",
         return_value={"llm_calls": 1},
     ):
         result = SingleAgent().run("Có sản phẩm nào?")
