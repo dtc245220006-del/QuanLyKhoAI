@@ -16,6 +16,7 @@ from models import (
     NhaCungCap
 )
 
+from auth import require_roles
 from gemini_service import tao_de_xuat_nhap
 
 
@@ -368,6 +369,7 @@ def tao_de_xuat_ai(
 @router.put("/{de_xuat_id}/duyet")
 def duyet_de_xuat(
     de_xuat_id: int,
+    current_user: User = Depends(require_roles("QuanLy")),
     db: Session = Depends(get_db)
 ):
     de_xuat = (
@@ -410,6 +412,7 @@ def duyet_de_xuat(
 @router.put("/{de_xuat_id}/tu-choi")
 def tu_choi_de_xuat(
     de_xuat_id: int,
+    current_user: User = Depends(require_roles("QuanLy")),
     db: Session = Depends(get_db)
 ):
     de_xuat = (
@@ -450,19 +453,15 @@ def tu_choi_de_xuat(
 @router.post("/{de_xuat_id}/tao-phieu-nhap")
 def tao_phieu_nhap_tu_de_xuat(
     de_xuat_id: int,
-    ma_tai_khoan: int,
     ma_ncc: int,
+    current_user: User = Depends(require_roles("ThuKho")),
     db: Session = Depends(get_db)
 ):
     # -----------------------------------------------------
     # Kiểm tra tài khoản
     # -----------------------------------------------------
 
-    user = (
-        db.query(User)
-        .filter(User.id == ma_tai_khoan)
-        .first()
-    )
+    user = current_user
 
     if user is None:
         raise HTTPException(
@@ -583,7 +582,7 @@ def tao_phieu_nhap_tu_de_xuat(
 
     phieu = PhieuNhap(
         ma_ncc=ma_ncc,
-        ma_tai_khoan=ma_tai_khoan,
+        ma_tai_khoan=current_user.id,
         ngay_nhap=datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S"
         ),
