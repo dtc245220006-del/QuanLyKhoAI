@@ -25,8 +25,8 @@ description: Kiểm tra JWT, phân quyền API, bí mật, IDOR và tính nguyê
 ## Kiểm thử và mức độ chắc chắn
 
 - Dùng `backend/tests/test_de_xuat_ai_authorization.py` (15 tests) để xác nhận những route proposal đã được bao phủ.
-- Dùng `backend/tests/test_mysql_inventory_integration.py` (6 tests) chỉ trên `quanlykho_test` với `qlk_test_user`, theo [testing skill](../testing/SKILL.md).
-- Không đánh đồng **41 tests đã PASS tại máy nhóm** với việc đã kiểm thử toàn bộ security.
+- Dùng `backend/tests/test_mysql_inventory_integration.py` (12 tests) chỉ trên `quanlykho_test` với `qlk_test_user`, theo [testing skill](../testing/SKILL.md).
+- Không đánh đồng regression Windows **57/57 PASS** với việc đã kiểm thử toàn bộ security, CI, E2E hoặc pentest.
 - Nếu không chạy được môi trường, báo `NOT RUN`, tuyệt đối không đoán kết quả.
 
 ## Output

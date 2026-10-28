@@ -584,10 +584,10 @@ Từ root repo, sau khi đã tạo `backend/.venv`:
 ```powershell
 cd multi_agent
 $env:PYTHONPATH = (Get-Location).Path
-& "..\backend\.venv\Scripts\python.exe" -X utf8 -m pytest --pyargs multi_agent.tests ..\backend\tests\test_de_xuat_ai_authorization.py --import-mode=importlib -q
+& "..\backend\.venv\Scripts\python.exe" -X utf8 -m pytest --pyargs multi_agent.tests ..\backend\tests\test_de_xuat_ai_authorization.py ..\backend\tests\test_route_authentication.py --import-mode=importlib -q
 ```
 
-Nhóm này hiện gồm **20 Agent/SQL + 15 API authorization = 35 tests**. Nếu chạy từ root bằng đường dẫn thư mục trần có thể gặp `ModuleNotFoundError: multi_agent.agents`; không sửa đường import nghiệp vụ chỉ để chữa lệnh pytest sai vị trí.
+Nhóm này hiện gồm **20 Agent/SQL + 15 API authorization + 10 anonymous-route = 45 tests**. Nếu chạy từ root bằng đường dẫn thư mục trần có thể gặp `ModuleNotFoundError: multi_agent.agents`; không sửa đường import nghiệp vụ chỉ để chữa lệnh pytest sai vị trí.
 
 **MySQL integration (chủ động bật, chỉ trên test schema):**
 
@@ -595,14 +595,14 @@ Nhóm này hiện gồm **20 Agent/SQL + 15 API authorization = 35 tests**. Nế
 & "..\backend\.venv\Scripts\python.exe" -X utf8 -m pytest ..\backend\tests\test_mysql_inventory_integration.py --run-mysql-integration -s -q
 ```
 
-- Có 6 integration tests. `-s` là để pytest cho phép `getpass` đọc stdin.
+- Có 12 integration tests. `-s` là để pytest cho phép `getpass` đọc stdin.
 - Tuyệt đối **không** dùng `quan_ly_kho` hoặc root MySQL. Chỉ `quanlykho_test`, `qlk_test_user`; verify `SELECT DATABASE(), CURRENT_USER()` trước write/delete; không nạp `.env` app.
 - Dừng nếu Terminal không che được mật khẩu khi nhập. Không ghi password trong log.
 - Các test cố tình inject failure để bảo vệ rollback, không chỉnh assertion khi chúng FAIL.
 
 ## 22. Đối chiếu số lượng và chứng cứ
 
-- Trên repo: **20** tests trong `multi_agent/multi_agent/tests/` + **15** API tests + **6** MySQL tests = **41 automated tests**.
-- Nhóm đã ghi nhận **35 passed** và sau đó **6 passed** trên máy local; đây không phải kết quả CI đang chạy tại GitHub. Khi re-run cần cập nhật output/failed/skipped/error thực tế.
-- Báo cáo môn học trình bày **77 functional test cases** riêng; không cộng với 41 rồi nói 118 automated tests.
-- **Chưa bao phủ:** forced-error rollback xuất kho, toàn bộ backend JWT/role, frontend E2E, Gemini thật trong mọi trường hợp, concurrency. Xem `docs/test-report.md` và `docs/security-review.md`.
+- Trên repo: **20** tests trong `multi_agent/multi_agent/tests/` + **15** API authorization + **10** route-auth + **12** MySQL = **57 automated tests**.
+- Regression Windows 28/10/2026 ghi nhận **45/45** Unit/API/Agent và **12/12** MySQL integration PASS, tổng **57/57**. Đây không phải CI, E2E frontend hay kiểm thử Gemini thật; khi re-run phải cập nhật output/failed/skipped/error thực tế.
+- Báo cáo môn học trình bày **77 functional test cases** riêng; không cộng với 57 rồi nói 134 automated tests.
+- **Chưa bao phủ:** full role matrix mọi method, frontend E2E, Gemini thật, và concurrency nhiều mặt hàng trên MySQL. Xem `docs/test-report.md` và `docs/security-review.md`.

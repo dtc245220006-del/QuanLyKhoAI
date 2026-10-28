@@ -57,12 +57,13 @@ Copy-Item .\backend\.env.example .\backend\.env
 cd backend
 py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe .\bootstrap_admin.py
 .\.venv\Scripts\python.exe -m uvicorn main:app --reload
 ```
 
 **Trước khi chạy:** sửa `backend/.env` cho đúng MySQL local; đặt `JWT_SECRET_KEY` ngẫu nhiên, dài và `GEMINI_API_KEY` hợp lệ. Không commit `.env`; không đưa mật khẩu hoặc API key vào báo cáo, log hay ảnh Terminal. API docs: http://127.0.0.1:8000/docs.
 
-**Cảnh báo bảo mật hiện tại:** `backend/main.py` tự tạo tài khoản `admin` với mật khẩu mặc định yếu nếu chưa có; chỉ dùng trong máy demo cô lập và cần sửa luồng khởi tạo mật khẩu trước khi mở dịch vụ ra mạng. Một số endpoint kho cũng chưa áp dụng `get_current_user` / `require_roles`; xem [Security Review](docs/security-review.md). Không coi màn hình ẩn theo role là cơ chế bảo mật thay cho backend.
+**Cảnh báo bảo mật hiện tại:** `backend/main.py` không tự tạo schema hoặc seed tài khoản. Các API nghiệp vụ yêu cầu JWT ở backend, còn quyền tạo/xác nhận phiếu và thao tác AI được kiểm tra theo role. Frontend tự xóa phiên và về login khi API trả 401 ngoài login; 403 giữ phiên để hiển thị lỗi quyền. Đây không thay thế review production: token hiện vẫn ở `localStorage`, chưa có rate limit, E2E hay pentest. Xem [Security Review](docs/security-review.md).
 
 **Bước 3 — Frontend** (mở Terminal khác, từ thư mục gốc):
 
@@ -88,17 +89,17 @@ Hai API Advisor yêu cầu Bearer token và body JSON `{"question":"Hàng nào �
 
 ## 5. Kiểm thử — lệnh đã dùng trên máy Windows
 
-**A. Bộ Unit/API/Agent (35 bài kiểm thử)**, chạy từ **thư mục gốc**:
+**A. Bộ Unit/API/Agent (45 bài kiểm thử được định nghĩa)**, chạy từ **thư mục gốc**:
 
 ```powershell
 cd multi_agent
 $env:PYTHONPATH = (Get-Location).Path
-& "..\backend\.venv\Scripts\python.exe" -X utf8 -m pytest --pyargs multi_agent.tests ..\backend\tests\test_de_xuat_ai_authorization.py --import-mode=importlib -q
+& "..\backend\.venv\Scripts\python.exe" -X utf8 -m pytest --pyargs multi_agent.tests ..\backend\tests\test_de_xuat_ai_authorization.py ..\backend\tests\test_route_authentication.py --import-mode=importlib -q
 ```
 
 Cách gọi trên giải quyết trường hợp package `multi_agent/multi_agent` bị nhầm với thư mục ngoài khi chạy pytest từ root.
 
-**B. Bộ tích hợp MySQL thật (6 bài kiểm thử)** — Terminal vẫn ở `multi_agent`:
+**B. Bộ tích hợp MySQL thật (12 bài kiểm thử được định nghĩa)** — Terminal vẫn ở `multi_agent`:
 
 ```powershell
 & "..\backend\.venv\Scripts\python.exe" -X utf8 -m pytest ..\backend\tests\test_mysql_inventory_integration.py --run-mysql-integration -s -q
@@ -108,7 +109,7 @@ Cách gọi trên giải quyết trường hợp package `multi_agent/multi_agen
 - **Không nhập mật khẩu nếu Terminal cảnh báo rằng ký tự sẽ hiển thị**. Dùng PowerShell thông thường và không chụp thông tin bí mật.
 - Test tạo/xóa dữ liệu mẫu của chính nó. Không chạy trên `quan_ly_kho`, không thay tên schema/user để vượt guard.
 
-**Kết quả đã ghi nhận từ lần chạy thủ công của nhóm:** 35/35 Unit/API/Agent + 6/6 MySQL Integration = **41 passed**. Đây là kết quả một phiên chạy trên máy nhóm, **không phải kết quả CI hoặc cam kết tất cả tính năng đã được kiểm thử**. Chạy lại sau mỗi thay đổi và ghi log thực tế. 77 test case trong báo cáo là bộ kiểm thử chức năng được trình bày riêng, **không cộng gộp như 118 test tự động**. Chi tiết: [test-report](docs/test-report.md).
+**Kết quả regression Windows (28/10/2026):** **45/45** Unit/API/Agent PASS, `IT-011` chạy riêng PASS, **12/12** MySQL integration PASS, tổng **57/57** automated tests PASS. `npm run lint` exit 0 với 10 warning React cũ; `npm run build` và `git diff --check` exit 0. 77 test case trong báo cáo là bộ chức năng/manual riêng, không cộng gộp với 57 automated tests. Chi tiết: [test-report](docs/test-report.md).
 
 ## 6. Benchmark Single-Agent và Multi-Agent
 
@@ -130,6 +131,6 @@ Kết quả ghi tại `multi_agent/multi_agent_benchmark.json`. Báo cáo đã g
 - [Deployment](docs/deployment.md) · [Test plan](docs/test-plan.md) · [Test report](docs/test-report.md).
 - [Security review](docs/security-review.md) · [Đối chiếu báo cáo/source](docs/repository-alignment.md).
 - Database đã khai báo **12 bảng** trong SQL; sơ đồ thiết kế có thể nêu thành phần dự kiến chưa tồn tại vật lý (ví dụ `BAO_CAO_AI`). Không trình bày các phần dự kiến như đã chạy.
-- Chưa có bằng chứng E2E/frontend CI cho mọi chức năng, test Gemini thật liên tục, kiểm thử rollback lỗi giữa giao dịch **xuất** và rà bảo mật toàn diện.
+- Chưa có bằng chứng E2E/frontend CI cho mọi chức năng, test Gemini thật liên tục, kiểm thử concurrency thực tế và rà bảo mật toàn diện.
 
 **Nguyên tắc:** trước khi demo, kiểm tra trên máy nhóm, dùng dữ liệu thử, chỉ báo kết quả đã thực sự quan sát và không chia sẻ secrets.

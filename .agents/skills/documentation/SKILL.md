@@ -21,7 +21,7 @@ description: Đồng bộ README, báo cáo, kiến trúc, ERD, skill, demo và 
 - Sơ đồ: 7 Agent trong Multi-Agent, phân biệt baseline Single-Agent.
 - Luồng: AI đề xuất → Quản lý duyệt → Thủ kho tạo phiếu **nháp** → khi xác nhận mới cập nhật tồn/lịch sử.
 - Schema triển khai: 12 bảng trong `quan_ly_kho`; `quanlykho_test` chỉ là test DB. Nếu ảnh thiết kế có `BAO_CAO_AI`, không tuyên bố đó là bảng đã triển khai.
-- Kiểm thử: báo cáo **77 functional cases**, repo **41 automated tests** (20 Agent, 15 API, 6 MySQL). Kết quả PASS chỉ là lần chạy nhóm đã ghi nhận và cần chạy lại sau sửa code.
+- Kiểm thử: báo cáo **77 functional cases**, repo **57 automated tests** (20 Agent, 15 API authorization, 10 route-auth, 12 MySQL). Regression Windows 28/10/2026 ghi nhận 57/57 PASS; không diễn giải thành Gemini thật, E2E hay production certification.
 - Benchmark 10 câu: chỉ là một lượt đo; không khẳng định AI tuyệt đối chính xác hay Multi-Agent luôn nhanh hơn.
 
 ## Quy trình cập nhật

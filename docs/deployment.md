@@ -1,6 +1,6 @@
 # Deployment / Run Guide — QuanLyKhoAI
 
-> Dành cho **demo local Windows**, chưa phải hướng dẫn triển khai production. Ứng dụng còn thiếu auth ở một số route và có cơ chế tạo admin mặc định yếu; đọc [Security Review](security-review.md) trước khi đưa ra mạng.
+> Dành cho **demo local Windows**, chưa phải hướng dẫn triển khai production. Đọc [Security Review](security-review.md) trước khi đưa ra mạng.
 
 ## 1. MySQL local
 
@@ -22,7 +22,11 @@ py -m venv .venv
 
 Trước khi khởi động, sửa `backend/.env` với `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME=quan_ly_kho`, `JWT_SECRET_KEY`, `GEMINI_API_KEY`. Không commit `.env`; dùng JWT secret đủ mạnh. Backend API: http://127.0.0.1:8000/docs.
 
-`backend/main.py` hiện chạy `create_all` và seed admin khi import: phải ý thức rằng **khởi động/import có tác động đến DB**, và phải xử lý tài khoản `admin` có mật khẩu mặc định yếu trước khi public.
+`backend/main.py` không tạo schema hay seed tài khoản khi import. Khởi tạo schema bằng script SQL đã review, sau đó tạo tài khoản Quản lý một lần bằng lệnh sau; mật khẩu được nhập kín và không có mặc định:
+
+```powershell
+.\.venv\Scripts\python.exe .\bootstrap_admin.py
+```
 
 ## 3. Frontend React/Vite
 
@@ -36,7 +40,7 @@ npm run dev
 
 Truy cập http://localhost:5173. Code `frontend/src/api.js` trỏ cố định `http://127.0.0.1:8000`, nên backend phải đúng địa chỉ; CORS ở `backend/main.py` cho phép `localhost:5173` và `127.0.0.1:5173`.
 
-Kiểm tra build/lint bằng `npm run build` và `npm run lint`; không tuyên bố PASS nếu không chạy thực tế.
+Regression Windows 28/10/2026: `npm run lint` exit 0 với 10 warning React đã biết; `npm run build` exit 0. Kiểm tra lại trên máy demo sau khi đổi môi trường hoặc dependency.
 
 ## 4. AI và Multi-Agent
 
@@ -49,7 +53,7 @@ Kiểm tra build/lint bằng `npm run build` và `npm run lint`; không tuyên b
 
 ## 5. Chạy tests
 
-Tham khảo [README](../README.md) và [Test Report](test-report.md) để có lệnh chính xác: 35 Unit/API/Agent và 6 MySQL integration; **không** chạy integration trên DB ứng dụng.
+Tham khảo [README](../README.md) và [Test Report](test-report.md) để có lệnh chính xác: 45 Unit/API/Agent và 12 MySQL integration; **không** chạy integration trên DB ứng dụng.
 
 ## 6. Demo và các giới hạn
 
@@ -59,4 +63,4 @@ Tham khảo [README](../README.md) và [Test Report](test-report.md) để có l
 4. Quản lý duyệt đề xuất AI → Thủ kho tạo phiếu nhập nháp; AI không tự tăng tồn.
 5. Chạy Multi-Agent và giải thích Analyst/SQL/RAG/Critic/retry.
 
-Đây là checklist demo, **không bảo đảm mỗi bước đã được test E2E**. Rủi ro auth và rollback xuất kho còn được ghi ở [Security Review](security-review.md).
+Đây là checklist demo, **không bảo đảm mỗi bước đã được test E2E**. Rủi ro token storage, rate limit, concurrency thực tế và E2E còn được ghi ở [Security Review](security-review.md).

@@ -19,7 +19,7 @@ Các file `SKILL.md` dưới đây hướng dẫn **công cụ AI hỗ trợ ph�
 | [implementation](implementation/SKILL.md) | Thực thi nghiệp vụ giữ nguyên yêu cầu |
 | [code-review](code-review/SKILL.md) | Đánh giá correctness, security và technical debt |
 | [security-review](security-review/SKILL.md) | JWT, role, secrets, IDOR và transaction |
-| [testing](testing/SKILL.md) | 35 Unit/API + 6 MySQL Integration, mock và test oracle |
+| [testing](testing/SKILL.md) | 45 Unit/API + 12 MySQL Integration, mock và test oracle |
 | [documentation](documentation/SKILL.md) | Đồng nhất docs, README, báo cáo, bằng chứng |
 | [context-builder](context-builder/SKILL.md) | Context kho dựa trên dữ liệu thật |
 | [product-retrieval](product-retrieval/SKILL.md) | Truy xuất `HangHoa`/`TonKho` qua SQL an toàn |
@@ -38,7 +38,7 @@ Với module AI, lồng thêm `question-analysis → product-retrieval/context-b
 - AI không trực tiếp xác nhận phiếu, ghi tồn hoặc duyệt đề xuất.
 - Không đưa mật khẩu, API key, JWT, URL MySQL chứa mật khẩu vào Git/prompt/log/screenshot.
 - Không xóa assertion khi test lỗi; cần phân tích và sửa source có kiểm thử hồi quy.
-- Không tự gộp 77 test case của báo cáo thành 41 automated test của repository.
+- Không tự gộp 77 test case của báo cáo thành 57 automated test của repository.
 - Nếu cần sửa security/business logic, tạo test trước; không sửa code chỉ để khớp một sơ đồ chưa xác minh.
 
 Xem thêm [Test Report](../../docs/test-report.md) và [Security Review](../../docs/security-review.md).

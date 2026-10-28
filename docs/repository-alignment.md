@@ -9,10 +9,10 @@ Bảng này giúp nhóm trình bày **đúng những gì đã triển khai**, kh
 | I — Tổng quan | Lý do, mục tiêu, phạm vi một kho, 3 vai trò | `README.md`, `docs/project-context.md` | Đúng `QuanLy`, `ThuKho`, `KeToan`; không tự thêm vai trò |
 | II — Kế hoạch | Agile/Scrum, sprint, phân công, DOD | Báo cáo môn học | Thông tin quản trị dự án, không phải tính năng runtime; chưa có artefact lịch sprint đầy đủ trong repo |
 | III — Yêu cầu | FR/NFR, chức năng kho và AI | `docs/requirements.md`, `docs/user-stories.md`, `docs/acceptance-criteria.md` | Requirement là **mong đợi**, cần kiểm tra từng yêu cầu với implementation |
-| IV — Use Case | Tài khoản, nhập/xuất, tồn, đề xuất AI | `backend/*.py`, `frontend/src/pages/` | Một số API nghiệp vụ **chưa bảo vệ JWT/role** như mô tả lý tưởng; xem security review |
+| IV — Use Case | Tài khoản, nhập/xuất, tồn, đề xuất AI | `backend/*.py`, `frontend/src/pages/` | Router nghiệp vụ yêu cầu JWT/role; regression Windows 57/57 PASS, nhưng chưa có full role matrix/E2E |
 | V — Phân tích/thiết kế | Use Case, Activity, Sequence, quy trình | Hình gốc trong báo cáo; routes và logic Python | Sơ đồ là thiết kế/đặc tả; không coi tất cả luồng trong hình đã có automated test |
 | VI — Kiến trúc/CSDL/UI | React–FastAPI–MySQL, 7 Agent, ERD, màn hình | `docs/architecture.md`, `docs/erd.md`, `backend/models.py`, `database/quan_ly_kho_mysql.sql`, `frontend/src/` | **12 bảng hiện diện trong schema SQL**. Bảng `BAO_CAO_AI` nếu có trong bản thiết kế là **dự kiến**, không có trong file SQL |
-| VII — Kiểm thử | Functional test, AI-assisted testing, test case, benchmark | `docs/test-report.md`, `backend/tests/`, `multi_agent/multi_agent/tests/`, `multi_agent/multi_agent_benchmark.json` | Báo cáo có **77 functional test case** (được trình bày riêng); repo có **41 automated tests** (20 Agent + 15 API + 6 MySQL) đã được nhóm ghi nhận PASS local; không đánh đồng hai bộ |
+| VII — Kiểm thử | Functional test, AI-assisted testing, test case, benchmark | `docs/test-report.md`, `backend/tests/`, `multi_agent/multi_agent/tests/`, `multi_agent/multi_agent_benchmark.json` | Báo cáo có **77 functional test case** riêng; repo có **57 automated tests** (20 Agent + 15 API + 10 route-auth + 12 MySQL), đã PASS trên Windows: 45/45 Unit/API/Agent và 12/12 MySQL. |
 
 ## Sơ đồ và AI — các ràng buộc cần nói nhất quán
 
@@ -25,19 +25,19 @@ Bảng này giúp nhóm trình bày **đúng những gì đã triển khai**, kh
 
 ## Những khoảng cách chưa được đóng
 
-- **Bảo mật:** JWT/role thiếu ở một số routes; POST tạo đề xuất AI nhận `ma_tai_khoan` từ request; admin default yếu. Không nên tuyên bố hoàn thiện bảo mật.
-- **Transaction:** rollback nhập đã có test tái hiện; rollback giữa transaction **xuất kho** chưa có test inject lỗi.
-- **Test:** 35 + 6 PASS là output ghi nhận thủ công, không có GitHub Actions CI trong repo ở thời điểm rà soát; thiếu E2E frontend và test Gemini thật.
+- **Bảo mật:** code đã bỏ admin default, lấy identity từ JWT và bảo vệ router; regression Windows PASS nhưng full role matrix chưa có. Không nên tuyên bố hoàn thiện bảo mật.
+- **Transaction:** rollback nhập/xuất, duplicate line và concurrent confirm đã PASS trên MySQL test schema; concurrency nhiều hàng còn thiếu.
+- **Test:** 57 automated tests đã PASS trên Windows; 77 functional case trong báo cáo là bộ riêng. Vẫn thiếu E2E frontend và test Gemini thật.
 - **Tài liệu:** hình gốc và DOCX/PDF/Canva slide chưa được lưu trong repository. Chỉ đối chiếu được nội dung code/dữ liệu và các tệp `docs/`, không xác nhận mã nguồn nào cũng tái tạo hoàn toàn hình/bảng trong báo cáo.
-- **Khởi tạo:** `backend/main.py` gọi `create_all` và tạo admin khi import, cần cô lập trước khi thử nghiệm/migration.
+- **Khởi tạo:** `backend/main.py` không mutate DB khi import; `backend/bootstrap_admin.py` tạo Quản lý tường minh, không ghi đè username đã có.
 - **Secrets:** file `.env`, token và API key tuyệt đối không đưa vào Git. Nếu từng lộ, cần đổi/thu hồi.
 
 ## Checklist trước khi thuyết trình hoặc phát hành
 
 - [ ] Bản GitHub, README, sơ đồ, demo dùng đúng tên vai trò và schema.
-- [ ] Thực thi các lệnh theo [README](../README.md), lưu output thật, không dùng số PASS giả định.
-- [ ] Không public port/backend với admin mặc định hoặc routes chưa bảo vệ.
+- [x] Regression Windows: 45/45 Unit/API/Agent, IT-011 PASS và 12/12 MySQL; lưu output thật cùng đợt phát hành.
+- [ ] Không public port/backend trước khi có output regression thật và xử lý các mục security open.
 - [ ] Kiểm tra `npm run build` và `npm run lint` trên máy demo.
 - [ ] Demo được 1 luồng nhập, 1 luồng xuất, 1 luồng AI phê duyệt.
-- [ ] Giải thích rõ **77 test case trình bày trong báo cáo** khác **41 test tự động trong repo**.
+- [ ] Giải thích rõ **77 test case trình bày trong báo cáo** khác **57 test tự động trong repo**.
 - [ ] Mọi ảnh, slide và số liệu benchmark có nguồn/điều kiện đo, không che giấu phần chưa kiểm tra.

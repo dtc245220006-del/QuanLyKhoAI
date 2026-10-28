@@ -18,7 +18,7 @@ Giúp nhóm chốt tài liệu **mà không thay đổi yêu cầu hoặc tuyên
 1. **Giới hạn phạm vi:** một kho, `QuanLy/ThuKho/KeToan`. Không tự bổ sung module chưa tồn tại.
 2. **Dữ liệu:** schema ứng dụng `quan_ly_kho`, 12 bảng; schema test `quanlykho_test` riêng. `BAO_CAO_AI` trong bản vẽ (nếu có) là thiết kế dự kiến khi không có trong SQL thực tế.
 3. **Luồng:** AI phân tích/gợi ý; Quản lý duyệt; Thủ kho tạo phiếu nháp; tồn chỉ đổi khi xác nhận. Xem implementation để xác minh từng API.
-4. **Chứng cứ test:** 20 Agent + 15 API + 6 MySQL = 41 automated tests trong repo; 77 test case chức năng thuộc báo cáo, là nhóm khác. Test PASS local không tương đương CI/E2E.
+4. **Chứng cứ test:** 20 Agent + 15 API authorization + 10 route-auth + 12 MySQL = 57 automated tests trong repo; 77 test case chức năng thuộc báo cáo, là nhóm khác. Regression Windows 28/10/2026 ghi nhận 57/57 PASS; kết quả này không tương đương CI, E2E hay pentest.
 5. **Benchmark:** 10 câu hỏi, 1 lượt đo được ghi nhận; không khẳng định luôn nhanh hơn.
 6. **Bảo mật:** rà admin mặc định, JWT/role cho từng endpoint, IDOR, secrets, rollback xuất kho, lỗi Gemini. Không gắn nhãn production-ready khi còn lỗ hổng.
 7. **Giới hạn thực thi:** nếu không chạy được Python, MySQL, Node, Gemini, báo rõ `NOT RUN`, không đoán.
