@@ -63,3 +63,11 @@ Runtime log:
 multi_agent/multi_agent/logs/agent_execution.log
 
 Mỗi record có task_id, agent nguồn/đích, message type, status; retry record có attempt và errors.
+
+
+## Cập nhật kiểm thử và đối chiếu (28/10/2026)
+
+- Module này có **20 unit/Agent tests**; repo toàn bộ có **35 Unit/API/Agent + 6 MySQL integration = 41 automated tests** từng được nhóm xác nhận PASS khi chạy trên máy local.
+- Lệnh chạy đúng với package lồng `multi_agent/multi_agent` nằm tại [README chính](../../README.md) và [Test Report](../../docs/test-report.md); không dùng `pytest multi_agent/multi_agent/tests` từ root nếu gây import nhầm.
+- Các `SKILL.md` dưới `../../.agents/skills/` là tài liệu hỗ trợ phát triển, **không phải** 7 Agent runtime được liệt kê phía trên.
+- AI chỉ phân tích dữ liệu kho; không tự xác nhận phiếu hoặc thay đổi tồn. Các rủi ro auth/rollback chưa kiểm thử đầy đủ được liệt kê tại [Security Review](../../docs/security-review.md).
