@@ -1,67 +1,86 @@
-# Test Report
+# Test Report — QuanLyKhoAI
 
-## Automated tests
+> Phân biệt **test được định nghĩa trong repo**, **kết quả chạy thủ công đã ghi nhận** và **phạm vi chưa kiểm thử**. Không suy diễn rằng mọi chức năng đều đã PASS.
 
-Module AI có hai nhóm automated tests tại `multi_agent/multi_agent/tests/`:
+## 1. Bộ tự động đang có trong mã nguồn
 
-- 17 Test Case trong `test_multi_agent.py`, bao gồm AgentMessage, Analyst, SQL Tool, RAG Agent, Reasoning, Critic, Response và Orchestrator/retry.
-- 2 Test Case cho Single-Agent baseline trong `test_single_agent.py`.
-- 1 Test Case SQL Tool độc lập trong `test_sql_tool.py`.
+| Bộ kiểm thử | Vị trí | Số test đã ghi nhận | Phương pháp |
+|---|---|---:|---|
+| Multi-Agent, Single-Agent, SQL Tool | `multi_agent/multi_agent/tests/` | 20 | pytest, mock; kiểm tra orchestration, Critic, SQL Tool, RAG và baseline |
+| Phân quyền đề xuất AI/API | `backend/tests/test_de_xuat_ai_authorization.py` | 15 | FastAPI TestClient, fake session/dependency override |
+| Nhập, xuất, tồn, rollback và AI | `backend/tests/test_mysql_inventory_integration.py` | 6 | **MySQL thật** trên schema test riêng, Gemini được mock |
+| **Tổng** | | **41** | 35 Unit/API + 6 MySQL Integration |
 
-Tổng cộng: **20 Test Case tự động được định nghĩa trong module AI**. Đây là số lượng test case được định nghĩa trong mã nguồn; trạng thái pass/fail phải được cập nhật sau khi chạy pytest trên môi trường triển khai.
+`backend/tests/conftest.py` cung cấp cờ `--run-mysql-integration`. **Không** chạy integration test với tài khoản/database ứng dụng.
 
-## Phạm vi kiểm thử tự động
+Báo cáo môn học còn trình bày **77 test case chức năng** theo bảng thủ công/hộp đen. Đây là **bộ test khác**, không được mô tả thành `118 automated tests` hay ngầm định đã được chạy bởi pytest.
 
-Các nhóm kiểm tra hiện có gồm:
+## 2. Cách chạy thực tế trên Windows PowerShell
 
-1. Định dạng message có đủ thông tin task và payload.
-2. Analyst xử lý fallback khi Gemini lỗi, từ chối câu hỏi rỗng, nhận diện câu hỏi nhập bổ sung và sắp xếp giảm dần.
-3. SQL Tool dùng tham số cho dữ liệu đầu vào, lọc hàng dưới mức tồn tối thiểu và áp dụng thứ tự sắp xếp được cho phép.
-4. RAG Agent trả kết quả knowledge từ Vector Search Tool (được mock trong unit test).
-5. Reasoning tạo claim từ dữ liệu DB khi Gemini lỗi.
-6. Critic duyệt claim khớp dữ liệu, từ chối số lượng sai, mặt hàng không tồn tại, mặt hàng đủ tồn nhưng bị đưa vào danh sách cần nhập, và claim sai thứ tự giảm dần.
-7. Response Agent dùng nội dung fallback khi Gemini lỗi.
-8. Orchestrator dừng khi được duyệt, retry khi bị từ chối và trả trạng thái reject khi hết số lần retry.
-9. Single-Agent dùng một lần gọi LLM trong baseline và từ chối claim chứa mã hàng không tồn tại.
+Từ thư mục gốc repository sau khi đã cài `backend/.venv`:
 
-Lưu ý: các unit test cho SQL Tool/RAG sử dụng mock, do đó **không thay thế** kiểm thử tích hợp cần kết nối MySQL thật và kiểm thử runtime của ChromaDB/SentenceTransformer.
+**35 Unit/API/Agent tests:**
 
-## Chạy automated tests
+```powershell
+cd multi_agent
+$env:PYTHONPATH = (Get-Location).Path
+& "..\backend\.venv\Scripts\python.exe" -X utf8 -m pytest --pyargs multi_agent.tests ..\backend\tests\test_de_xuat_ai_authorization.py --import-mode=importlib -q
+```
 
-Từ thư mục gốc repository, kích hoạt đúng virtual environment rồi chạy:
+**6 MySQL integration tests:** khi Terminal vẫn đứng ở `multi_agent`:
 
-    python -m pytest multi_agent/multi_agent/tests -q
+```powershell
+& "..\backend\.venv\Scripts\python.exe" -X utf8 -m pytest ..\backend\tests\test_mysql_inventory_integration.py --run-mysql-integration -s -q
+```
 
-Kết quả mong đợi về số lượng: 20 tests collected. Chỉ ghi nhận "19 passed" nếu output thực tế của pytest xác nhận tất cả đều pass. Nếu có lỗi, lưu lại traceback và sửa nguyên nhân trước khi cập nhật báo cáo.
+- Yêu cầu local schema `quanlykho_test`, user `qlk_test_user` (chỉ quyền SELECT/INSERT/UPDATE/DELETE đối với test schema).
+- `getpass` hỏi mật khẩu tương tác. **Dừng nếu Terminal cảnh báo có thể echo mật khẩu**. Không ghi mật khẩu trong lệnh, file, ảnh hay log.
+- Test kiểm tra `SELECT DATABASE(), CURRENT_USER()` trước khi ghi/xóa, tạo fixture riêng và dọn các bản ghi do test tạo.
+- Không dùng `backend.database`, `backend.main`, `.env` của ứng dụng trong test tích hợp để tránh kết nối nhầm schema.
 
-## Benchmark Single-Agent vs Multi-Agent
+## 3. Kết quả đã được nhóm ghi nhận trên máy chạy dự án
 
-Benchmark sử dụng cùng bộ 10 câu hỏi, cùng database MySQL và cùng model Gemini. Các chỉ số gồm:
+| Nhóm | Passed | Failed | Ghi chú |
+|---|---:|---:|---|
+| Unit/API/Agent | **35** | **0** | Đã thấy log pytest `35 passed, 1 warning` |
+| MySQL Integration | **6** | **0** | Nhóm xác nhận đã chạy lại và PASS sau khi sửa rollback nhập kho |
+| Tổng | **41** | **0** | Ghi nhận một phiên thử nghiệm local, **chưa được chạy lại ở GitHub Actions** |
 
-- Accuracy theo Test Oracle dựa trên claim đối chiếu với dữ liệu SQL và các điều kiện của câu hỏi.
-- Response time trung bình.
-- Số lần gọi LLM trung bình và tổng số lần gọi LLM.
+Không thay thế bằng kết quả `collected` hay giả định máy khác cũng sẽ PASS. Các test dùng mock **không kiểm tra việc gọi Gemini thật**, hiệu năng ChromaDB thực tế hoặc frontend E2E.
 
-Lệnh chạy từ thư mục gốc:
+### Tình huống lỗi đã được phát hiện và xử lý
 
-    cd multi_agent
-    python -m multi_agent.benchmark
+Trong lần chạy integration đầu tiên: **5 passed, 1 failed** tại `test_it_005_receipt_failure_rolls_back_without_partial_stock_update`. Test cố tình tạo lỗi lúc ghi `LichSuKho` và phát hiện SQLAlchemy Session vẫn còn transaction sau exception. Nhóm bổ sung rollback + flush trong `backend/phieu_nhap.py`, giữ assertion không đổi, sau đó xác nhận **6/6 PASS**. Đây là minh chứng AI-assisted testing → phân tích lỗi → sửa code → kiểm thử hồi quy.
 
-Kết quả được xuất ra:
+**Phần chưa kiểm chứng:** `xac_nhan_phieu_xuat` chưa có integration test inject lỗi giữa transaction; code chưa có rollback handler tương tự. Không được tuyên bố đã giải quyết rủi ro này.
 
-    multi_agent/multi_agent_benchmark.json
+## 4. Phạm vi test case
 
-### Kết quả benchmark đã ghi nhận
+- **AI Agent (20):** message, Analyst, SQL Tool query builder và parameterized query, RAG mock, Reasoning/Critic/Response, orchestration/retry, Single-Agent.
+- **API authorization (15):** token thiếu/sai, role không hợp lệ, duyệt/từ chối proposal, trạng thái đề xuất, tạo phiếu nháp từ đề xuất đã duyệt, chống giả mạo `ma_tai_khoan`.
+- **MySQL (6):** phiếu nhập nháp giữ nguyên tồn; xác nhận nhập tăng tồn một lần; phiếu xuất nháp giữ nguyên tồn; xuất quá tồn bị từ chối; nhập lỗi rollback; AI (mock) không tự sửa tồn.
 
-| Tiêu chí | Single-Agent | Multi-Agent |
+Không đánh đồng những lời mô tả về bảo mật/hệ thống trong báo cáo với kết quả kiểm thử thực tế. Xem [Security Review](security-review.md).
+
+## 5. Benchmark Single-Agent và Multi-Agent
+
+Một lượt benchmark đã ghi nhận với cùng 10 câu hỏi, Test Oracle đối chiếu dữ liệu MySQL:
+
+| Chỉ số | Single-Agent | Multi-Agent |
 |---|---:|---:|
-| Accuracy theo Test Oracle | 100.0% (10/10) | 100.0% (10/10) |
-| Thời gian trung bình | 2732.84 ms | 1488.47 ms |
-| LLM calls trung bình/câu | 1 | 3 |
+| Data-grounded accuracy | 10/10 | 10/10 |
+| Thời gian TB | 2732,84 ms | 1488,47 ms |
+| LLM calls TB/câu | 1 | 3 |
 | Tổng LLM calls | 10 | 30 |
 
-Đây là kết quả của một lần chạy cụ thể, không phải cam kết hiệu năng cho mọi lần chạy. Thời gian có thể chịu ảnh hưởng bởi việc khởi tạo model embedding, cache, mạng và độ trễ Gemini API. Accuracy ở đây là data-grounded accuracy của Test Oracle, không phải đánh giá tuyệt đối toàn bộ chất lượng câu trả lời tự nhiên. Nên chạy lại benchmark sau thay đổi code và lưu file JSON mới trước khi chốt báo cáo.
+Tham chiếu `multi_agent/multi_agent_benchmark.json`, [benchmark-guide](benchmark-guide.md), [multi-agent-comparison](multi-agent-comparison.md). Kết quả một lượt không chứng minh Multi-Agent luôn nhanh hơn hoặc mọi câu trả lời đều đúng tuyệt đối.
 
-## Giới hạn
+## 6. Việc còn thiếu trước khi gọi là kiểm thử toàn diện
 
-Bộ automated tests hiện tập trung vào module AI/Multi-Agent; chưa chứng minh toàn bộ frontend, backend nghiệp vụ kho, phân quyền API, giao dịch MySQL và các yêu cầu phi chức năng đã được kiểm thử đầy đủ. Các nội dung cần kiểm thử runtime riêng được liệt kê trong báo cáo và checklist kiểm thử của dự án.
+1. Test JWT/role **tất cả** endpoint kho, đặc biệt `/phieu-nhap`, `/phieu-xuat`, `/ai`, `/de-xuat-ai` chưa bảo vệ đầy đủ.
+2. Test forced-failure rollback phiếu xuất, kiểm tra trạng thái/tồn/lịch sử không commit dở.
+3. Test frontend build, lint, các luồng login/demo end-to-end.
+4. Test lỗi Gemini thật có kiểm soát, timeout/rate limit và thông tin lỗi không chứa secrets.
+5. Test concurrency nhập/xuất, stock race conditions và kiểm tra các ràng buộc DB vật lý.
+
+**Quy tắc báo cáo:** phải lưu output pytest, môi trường, ngày chạy và minh chứng riêng; không sửa assertion/giảm expected result để làm đẹp số PASS.
