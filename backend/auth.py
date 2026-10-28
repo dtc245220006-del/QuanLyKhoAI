@@ -22,7 +22,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 def get_db():
@@ -49,9 +49,15 @@ def create_access_token(username: str, role: str):
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: Session = Depends(get_db),
 ):
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Chưa cung cấp Bearer token",
+        )
+
     token = credentials.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])

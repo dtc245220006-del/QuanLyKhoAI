@@ -16,7 +16,7 @@ from models import (
     NhaCungCap
 )
 
-from auth import require_roles
+from auth import get_current_user, require_roles
 from gemini_service import tao_de_xuat_nhap
 
 
@@ -26,7 +26,8 @@ from gemini_service import tao_de_xuat_nhap
 
 router = APIRouter(
     prefix="/de-xuat-ai",
-    tags=["Đề xuất AI"]
+    tags=["Đề xuất AI"],
+    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -145,32 +146,9 @@ def get_de_xuat_by_id(
 
 @router.post("")
 def tao_de_xuat_ai(
-    ma_tai_khoan: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("QuanLy")),
 ):
-    # -----------------------------------------------------
-    # Kiểm tra tài khoản
-    # -----------------------------------------------------
-
-    user = (
-        db.query(User)
-        .filter(User.id == ma_tai_khoan)
-        .first()
-    )
-
-    if user is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Tài khoản không tồn tại"
-        )
-
-    # Chỉ Quản lý mới được tạo đề xuất chính thức
-    if user.role != "QuanLy":
-        raise HTTPException(
-            status_code=403,
-            detail="Chỉ Quản lý mới có quyền tạo đề xuất AI"
-        )
-
     # -----------------------------------------------------
     # Lấy dữ liệu tồn kho
     # -----------------------------------------------------
@@ -224,11 +202,11 @@ def tao_de_xuat_ai(
             du_lieu_ton_kho
         )
 
-    except Exception as e:
+    except Exception as exc:
         raise HTTPException(
-            status_code=500,
-            detail=f"Lỗi khi gọi Gemini: {str(e)}"
-        )
+            status_code=502,
+            detail="Dịch vụ Gemini hiện không phản hồi; hãy thử lại sau",
+        ) from exc
 
     nhan_xet = ai_result.get(
         "nhan_xet",
@@ -255,8 +233,12 @@ def tao_de_xuat_ai(
     # -----------------------------------------------------
 
     valid_items = []
+    allowed_item_ids = {item["ma_hang"] for item in du_lieu_ton_kho}
 
     for item in de_xuat_items:
+
+        if not isinstance(item, dict):
+            continue
 
         ma_hang = item.get("ma_hang")
 
@@ -264,10 +246,10 @@ def tao_de_xuat_ai(
             "so_luong_de_xuat"
         )
 
-        if not isinstance(ma_hang, int):
+        if type(ma_hang) is not int or ma_hang not in allowed_item_ids:
             continue
 
-        if not isinstance(so_luong, int):
+        if type(so_luong) is not int:
             continue
 
         if so_luong <= 0:
@@ -311,7 +293,7 @@ def tao_de_xuat_ai(
     # -----------------------------------------------------
 
     de_xuat = DeXuatAI(
-        ma_tai_khoan=ma_tai_khoan,
+        ma_tai_khoan=current_user.id,
         ngay_tao=datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S"
         ),

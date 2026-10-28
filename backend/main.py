@@ -3,8 +3,6 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from passlib.context import CryptContext
-from sqlalchemy.orm import Session
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
@@ -22,35 +20,7 @@ from bao_cao import router as bao_cao_router
 from ai_controller import router as ai_router
 from de_xuat_ai import router as de_xuat_ai_router
 from tai_khoan import router as tai_khoan_router
-from database import Base, engine, SessionLocal
-from models import User
 from multi_agent.multi_agent.router import router as multi_agent_router
-
-Base.metadata.create_all(bind=engine)
-
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
-
-
-def create_default_users():
-    db: Session = SessionLocal()
-    try:
-        admin = db.query(User).filter(User.username == "admin").first()
-        if admin is None:
-            db.add(User(
-                username="admin",
-                password=pwd_context.hash("123456"),
-                full_name="Quản lý",
-                role="QuanLy",
-            ))
-            db.commit()
-        elif admin.role != "QuanLy":
-            admin.role = "QuanLy"
-            db.commit()
-    finally:
-        db.close()
-
-
-create_default_users()
 
 app = FastAPI(title="Hệ thống quản lý kho tích hợp AI", version="1.1.0")
 app.add_middleware(

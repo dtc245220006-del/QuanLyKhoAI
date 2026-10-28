@@ -11,10 +11,12 @@ from models import (
     TonKho,
     HangHoa
 )
+from auth import get_current_user
 
 router = APIRouter(
     prefix="/bao-cao",
-    tags=["Thống kê & Báo cáo"]
+    tags=["Thống kê & Báo cáo"],
+    dependencies=[Depends(get_current_user)],
 )
 
 

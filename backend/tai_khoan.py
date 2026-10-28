@@ -33,10 +33,10 @@ class UserUpdate(BaseModel):
 
 
 def require_admin(current_user: User):
-    if current_user.username != "admin" or current_user.role != "QuanLy":
+    if current_user.role != "QuanLy":
         raise HTTPException(
             status_code=403,
-            detail="Chỉ tài khoản admin mới có quyền quản lý tài khoản",
+            detail="Chỉ Quản lý mới có quyền quản lý tài khoản",
         )
 
 
@@ -98,8 +98,8 @@ def update_user(
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise HTTPException(status_code=404, detail="Không tìm thấy tài khoản")
-    if user.username == "admin":
-        raise HTTPException(status_code=400, detail="Không thể sửa tài khoản admin")
+    if user.id == current_user.id:
+        raise HTTPException(status_code=400, detail="Không thể tự thay đổi quyền hoặc mật khẩu của chính mình")
     if data.role not in {"QuanLy", "ThuKho", "KeToan"}:
         raise HTTPException(status_code=400, detail="Vai trò không hợp lệ")
     if not data.full_name.strip():
@@ -128,8 +128,8 @@ def delete_user(
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise HTTPException(status_code=404, detail="Không tìm thấy tài khoản")
-    if user.username == "admin":
-        raise HTTPException(status_code=400, detail="Không thể xóa tài khoản admin")
+    if user.id == current_user.id:
+        raise HTTPException(status_code=400, detail="Không thể tự xóa tài khoản đang đăng nhập")
 
     db.delete(user)
     db.commit()

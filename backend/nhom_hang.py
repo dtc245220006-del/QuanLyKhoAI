@@ -4,11 +4,13 @@ from sqlalchemy.orm import Session
 
 from database import SessionLocal
 from models import NhomHang
+from auth import get_current_user, require_roles
 
 
 router = APIRouter(
     prefix="/nhom-hang",
-    tags=["Nhóm hàng"]
+    tags=["Nhóm hàng"],
+    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -76,7 +78,8 @@ def get_nhom_hang_by_id(
 @router.post("", response_model=NhomHangResponse)
 def create_nhom_hang(
     data: NhomHangCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user=Depends(require_roles("QuanLy")),
 ):
     ten_nhom = data.ten_nhom.strip()
 
@@ -118,7 +121,8 @@ def create_nhom_hang(
 def update_nhom_hang(
     nhom_hang_id: int,
     data: NhomHangCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user=Depends(require_roles("QuanLy")),
 ):
     nhom_hang = (
         db.query(NhomHang)
@@ -171,7 +175,8 @@ def update_nhom_hang(
 @router.delete("/{nhom_hang_id}")
 def delete_nhom_hang(
     nhom_hang_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user=Depends(require_roles("QuanLy")),
 ):
     nhom_hang = (
         db.query(NhomHang)

@@ -3,11 +3,13 @@ from sqlalchemy.orm import Session
 
 from database import SessionLocal
 from models import LichSuKho, HangHoa, User
+from auth import get_current_user
 
 
 router = APIRouter(
     prefix="/lich-su-kho",
-    tags=["Lịch sử kho"]
+    tags=["Lịch sử kho"],
+    dependencies=[Depends(get_current_user)],
 )
 
 

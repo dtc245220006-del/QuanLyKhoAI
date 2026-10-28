@@ -17,12 +17,16 @@ def get_connection():
     return pymysql.connect(
         host=os.getenv("DB_HOST", "localhost"),
         port=int(os.getenv("DB_PORT", "3306")),
-        user=os.getenv("DB_USER", "root"),
-        password=os.getenv("DB_PASSWORD", ""),
+        user=os.getenv("DB_USER") or _required_database_user(),
+        password=os.getenv("DB_PASSWORD"),
         database=os.getenv("DB_NAME", "quan_ly_kho"),
         cursorclass=pymysql.cursors.DictCursor,
         autocommit=True,
     )
+
+
+def _required_database_user():
+    raise RuntimeError("Chưa cấu hình DB_USER; không dùng fallback MySQL root")
 
 
 def search_inventory(intent: dict):

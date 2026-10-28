@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import SessionLocal
 from models import TonKho, HangHoa
 from gemini_service import phan_tich_ton_kho
+from auth import require_roles
 
 
 router = APIRouter(
@@ -23,7 +24,8 @@ def get_db():
 
 @router.get("/phan-tich-ton-kho")
 def ai_phan_tich_ton_kho(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user=Depends(require_roles("QuanLy")),
 ):
     ton_kho_list = (
         db.query(TonKho)
@@ -58,9 +60,13 @@ def ai_phan_tich_ton_kho(
             "data": []
         }
 
-    ket_qua = phan_tich_ton_kho(
-        du_lieu
-    )
+    try:
+        ket_qua = phan_tich_ton_kho(du_lieu)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="Dịch vụ Gemini hiện không phản hồi; hãy thử lại sau",
+        ) from exc
 
     return {
         "success": True,

@@ -4,11 +4,13 @@ from sqlalchemy.orm import Session
 
 from database import SessionLocal
 from models import NhaCungCap
+from auth import get_current_user, require_roles
 
 
 router = APIRouter(
     prefix="/nha-cung-cap",
-    tags=["Nhà cung cấp"]
+    tags=["Nhà cung cấp"],
+    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -97,7 +99,8 @@ def get_nha_cung_cap_by_id(
 )
 def create_nha_cung_cap(
     data: NhaCungCapCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user=Depends(require_roles("QuanLy")),
 ):
     ten_ncc = data.ten_ncc.strip()
 
@@ -132,7 +135,8 @@ def create_nha_cung_cap(
 def update_nha_cung_cap(
     nha_cung_cap_id: int,
     data: NhaCungCapCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user=Depends(require_roles("QuanLy")),
 ):
     nha_cung_cap = (
         db.query(NhaCungCap)
@@ -172,7 +176,8 @@ def update_nha_cung_cap(
 @router.delete("/{nha_cung_cap_id}")
 def delete_nha_cung_cap(
     nha_cung_cap_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user=Depends(require_roles("QuanLy")),
 ):
     nha_cung_cap = (
         db.query(NhaCungCap)
