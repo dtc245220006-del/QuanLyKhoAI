@@ -1,10 +1,12 @@
 from datetime import datetime
+from functools import wraps
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from database import SessionLocal
+from auth import get_current_user, require_roles
 from models import (
     PhieuXuat,
     ChiTietPhieuXuat,
@@ -17,7 +19,8 @@ from models import (
 
 router = APIRouter(
     prefix="/phieu-xuat",
-    tags=["Phiếu xuất"]
+    tags=["Phiếu xuất"],
+    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -44,7 +47,6 @@ class ChiTietPhieuXuatCreate(BaseModel):
 
 
 class PhieuXuatCreate(BaseModel):
-    ma_tai_khoan: int
     ly_do: str | None = None
     chi_tiet: list[ChiTietPhieuXuatCreate]
 
@@ -149,24 +151,9 @@ def get_phieu_xuat_by_id(
 @router.post("")
 def create_phieu_xuat(
     data: PhieuXuatCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("ThuKho")),
 ):
-    # -----------------------------------------------------
-    # Kiểm tra tài khoản
-    # -----------------------------------------------------
-
-    tai_khoan = (
-        db.query(User)
-        .filter(User.id == data.ma_tai_khoan)
-        .first()
-    )
-
-    if tai_khoan is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Tài khoản không tồn tại"
-        )
-
     # -----------------------------------------------------
     # Phải có ít nhất 1 sản phẩm
     # -----------------------------------------------------
@@ -182,8 +169,16 @@ def create_phieu_xuat(
     # -----------------------------------------------------
 
     chi_tiet_temp = []
+    seen_product_ids = set()
 
     for item in data.chi_tiet:
+
+        if item.ma_hang in seen_product_ids:
+            raise HTTPException(
+                status_code=400,
+                detail="Một phiếu xuất không được chứa trùng mặt hàng",
+            )
+        seen_product_ids.add(item.ma_hang)
 
         if item.so_luong <= 0:
             raise HTTPException(
@@ -213,7 +208,7 @@ def create_phieu_xuat(
     # -----------------------------------------------------
 
     phieu = PhieuXuat(
-        ma_tai_khoan=data.ma_tai_khoan,
+        ma_tai_khoan=current_user.id,
         ngay_xuat=datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S"
         ),
@@ -258,10 +253,25 @@ def create_phieu_xuat(
 # XÁC NHẬN PHIẾU XUẤT
 # =========================================================
 
+def rollback_session_on_error(handler):
+    @wraps(handler)
+    def wrapped(*args, **kwargs):
+        db = kwargs.get("db") or args[1]
+        try:
+            return handler(*args, **kwargs)
+        except Exception:
+            db.rollback()
+            raise
+
+    return wrapped
+
+
 @router.put("/{phieu_xuat_id}/xac-nhan")
+@rollback_session_on_error
 def xac_nhan_phieu_xuat(
     phieu_xuat_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(require_roles("ThuKho")),
 ):
     # -----------------------------------------------------
     # Tìm phiếu
@@ -270,6 +280,7 @@ def xac_nhan_phieu_xuat(
     phieu = (
         db.query(PhieuXuat)
         .filter(PhieuXuat.id == phieu_xuat_id)
+        .with_for_update()
         .first()
     )
 
@@ -321,6 +332,7 @@ def xac_nhan_phieu_xuat(
             .filter(
                 TonKho.ma_hang == chi_tiet.ma_hang
             )
+            .with_for_update()
             .first()
         )
 
@@ -379,6 +391,7 @@ def xac_nhan_phieu_xuat(
 
     phieu.trang_thai = "DaXuat"
 
+    db.flush()
     db.commit()
     db.refresh(phieu)
 
@@ -397,7 +410,8 @@ def xac_nhan_phieu_xuat(
 @router.delete("/{phieu_xuat_id}")
 def delete_phieu_xuat(
     phieu_xuat_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(require_roles("ThuKho")),
 ):
     phieu = (
         db.query(PhieuXuat)

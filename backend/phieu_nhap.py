@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from database import SessionLocal
+from auth import get_current_user, require_roles
 from models import (
     PhieuNhap,
     ChiTietPhieuNhap,
@@ -18,7 +19,8 @@ from models import (
 
 router = APIRouter(
     prefix="/phieu-nhap",
-    tags=["Phiếu nhập"]
+    tags=["Phiếu nhập"],
+    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -60,7 +62,6 @@ class ChiTietPhieuNhapResponse(BaseModel):
 
 class PhieuNhapCreate(BaseModel):
     ma_ncc: int
-    ma_tai_khoan: int
     chi_tiet: list[ChiTietPhieuNhapCreate]
 
 
@@ -191,7 +192,8 @@ def get_phieu_nhap_by_id(
 @router.post("")
 def create_phieu_nhap(
     data: PhieuNhapCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("ThuKho")),
 ):
 
     # -----------------------------------------------------
@@ -211,22 +213,6 @@ def create_phieu_nhap(
         )
 
     # -----------------------------------------------------
-    # Kiểm tra tài khoản
-    # -----------------------------------------------------
-
-    tai_khoan = (
-        db.query(User)
-        .filter(User.id == data.ma_tai_khoan)
-        .first()
-    )
-
-    if tai_khoan is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Tài khoản không tồn tại"
-        )
-
-    # -----------------------------------------------------
     # Phải có ít nhất 1 sản phẩm
     # -----------------------------------------------------
 
@@ -242,8 +228,16 @@ def create_phieu_nhap(
 
     tong_tien = 0
     chi_tiet_temp = []
+    seen_product_ids = set()
 
     for item in data.chi_tiet:
+
+        if item.ma_hang in seen_product_ids:
+            raise HTTPException(
+                status_code=400,
+                detail="Một phiếu nhập không được chứa trùng mặt hàng",
+            )
+        seen_product_ids.add(item.ma_hang)
 
         if item.so_luong <= 0:
             raise HTTPException(
@@ -288,7 +282,7 @@ def create_phieu_nhap(
 
     phieu = PhieuNhap(
         ma_ncc=data.ma_ncc,
-        ma_tai_khoan=data.ma_tai_khoan,
+        ma_tai_khoan=current_user.id,
         ngay_nhap=datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S"
         ),
@@ -339,7 +333,8 @@ def create_phieu_nhap(
 @router.delete("/{phieu_nhap_id}")
 def delete_phieu_nhap(
     phieu_nhap_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(require_roles("ThuKho")),
 ):
 
     phieu = (
@@ -352,6 +347,12 @@ def delete_phieu_nhap(
         raise HTTPException(
             status_code=404,
             detail="Không tìm thấy phiếu nhập"
+        )
+
+    if phieu.trang_thai == "DaNhap":
+        raise HTTPException(
+            status_code=400,
+            detail="Không thể xóa phiếu nhập đã xác nhận",
         )
 
     # Xóa chi tiết trước
@@ -391,7 +392,8 @@ def rollback_session_on_error(handler):
 @rollback_session_on_error
 def xac_nhan_phieu_nhap(
     phieu_nhap_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(require_roles("ThuKho")),
 ):
     # -----------------------------------------------------
     # Tìm phiếu nhập
@@ -400,6 +402,7 @@ def xac_nhan_phieu_nhap(
     phieu = (
         db.query(PhieuNhap)
         .filter(PhieuNhap.id == phieu_nhap_id)
+        .with_for_update()
         .first()
     )
 
@@ -464,6 +467,7 @@ def xac_nhan_phieu_nhap(
             .filter(
                 TonKho.ma_hang == chi_tiet.ma_hang
             )
+            .with_for_update()
             .first()
         )
 

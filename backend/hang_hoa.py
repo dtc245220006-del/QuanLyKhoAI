@@ -3,12 +3,22 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
 from database import SessionLocal
-from models import HangHoa, NhomHang
+from models import (
+    ChiTietDeXuatAI,
+    ChiTietPhieuNhap,
+    ChiTietPhieuXuat,
+    HangHoa,
+    LichSuKho,
+    NhomHang,
+    TonKho,
+)
+from auth import get_current_user, require_roles
 
 
 router = APIRouter(
     prefix="/hang-hoa",
-    tags=["Hàng hóa"]
+    tags=["Hàng hóa"],
+    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -96,7 +106,8 @@ def get_hang_hoa_by_id(
 )
 def create_hang_hoa(
     data: HangHoaCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user=Depends(require_roles("QuanLy")),
 ):
     # Kiểm tra nhóm hàng
     nhom_hang = (
@@ -183,7 +194,8 @@ def create_hang_hoa(
 def update_hang_hoa(
     hang_hoa_id: int,
     data: HangHoaCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user=Depends(require_roles("QuanLy")),
 ):
     hang_hoa = (
         db.query(HangHoa)
@@ -274,7 +286,8 @@ def update_hang_hoa(
 @router.delete("/{hang_hoa_id}")
 def delete_hang_hoa(
     hang_hoa_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user=Depends(require_roles("QuanLy")),
 ):
     hang_hoa = (
         db.query(HangHoa)
@@ -286,6 +299,19 @@ def delete_hang_hoa(
         raise HTTPException(
             status_code=404,
             detail="Không tìm thấy hàng hóa"
+        )
+
+    references = (
+        (ChiTietPhieuNhap, ChiTietPhieuNhap.ma_hang),
+        (ChiTietPhieuXuat, ChiTietPhieuXuat.ma_hang),
+        (ChiTietDeXuatAI, ChiTietDeXuatAI.ma_hang),
+        (TonKho, TonKho.ma_hang),
+        (LichSuKho, LichSuKho.ma_hang),
+    )
+    if any(db.query(model).filter(column == hang_hoa_id).first() for model, column in references):
+        raise HTTPException(
+            status_code=400,
+            detail="Không thể xóa hàng hóa đang được tham chiếu bởi dữ liệu kho",
         )
 
     db.delete(hang_hoa)
