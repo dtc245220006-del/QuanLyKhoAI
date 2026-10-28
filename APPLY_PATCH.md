@@ -1,3 +1,7 @@
+> **LƯU Ý (28/10/2026):** Đây là ghi chú **lịch sử của gói bổ sung ban đầu**, không phải hướng dẫn áp dụng bản repo hiện tại. Những con số trong phần dưới (ví dụ 12 automated tests) là **tại thời điểm gói patch**. Repo hiện tại có **41 automated tests** (20 Agent + 15 API + 6 MySQL) với kết quả PASS được nhóm xác nhận khi chạy local. **Không giải nén/overwrite lại patch cũ lên source hiện tại.** Xem [README](README.md), [Test Report](docs/test-report.md) và [Security Review](docs/security-review.md) để biết trạng thái mới nhất.
+
+---
+
 # Bộ bổ sung cho QuanLyKhoAI
 
 Bộ này được dựng theo source hiện có trên repo `dtc245220006-del/QuanLyKhoAI` và 2 tài liệu bài thực hành mà bạn đã cung cấp.
