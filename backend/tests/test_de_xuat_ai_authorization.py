@@ -21,6 +21,9 @@ sys.path.insert(0, str(PROJECT_DIR))
 
 os.environ["JWT_SECRET_KEY"] = "test-jwt-secret"
 os.environ["GEMINI_API_KEY"] = "test-gemini-key"
+os.environ["DB_USER"] = "qlk_test_user"
+os.environ["DB_PASSWORD"] = "test-only-password"
+os.environ["DB_NAME"] = "quanlykho_test"
 
 import auth
 import de_xuat_ai
