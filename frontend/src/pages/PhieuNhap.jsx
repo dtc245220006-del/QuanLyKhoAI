@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../api";
 
 function PhieuNhap() {
+  const canManageReceipt = JSON.parse(
+    localStorage.getItem("user") || "{}"
+  ).role === "ThuKho";
   const [phieuNhap, setPhieuNhap] = useState([]);
   const [nhaCungCap, setNhaCungCap] = useState([]);
   const [hangHoa, setHangHoa] = useState([]);
@@ -24,10 +27,6 @@ function PhieuNhap() {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  const currentUser = JSON.parse(
-    localStorage.getItem("user") || "{}"
-  );
 
   // =====================================================
   // LOAD DATA
@@ -215,10 +214,6 @@ function PhieuNhap() {
     const data = {
       ma_ncc: Number(form.ma_ncc),
 
-      ma_tai_khoan: Number(
-        currentUser.id
-      ),
-
       chi_tiet: validItems.map((item) => ({
         ma_hang: Number(item.ma_hang),
         so_luong: Number(item.so_luong),
@@ -353,12 +348,14 @@ function PhieuNhap() {
           </p>
         </div>
 
-        <button
-          className="primary-button"
-          onClick={openCreate}
-        >
-          + Tạo phiếu nhập
-        </button>
+        {canManageReceipt && (
+          <button
+            className="primary-button"
+            onClick={openCreate}
+          >
+            + Tạo phiếu nhập
+          </button>
+        )}
 
       </div>
 
@@ -462,8 +459,8 @@ function PhieuNhap() {
                         Xem
                       </button>
 
-                      {phieu.trang_thai ===
-                        "Nhap" && (
+                      {canManageReceipt &&
+                        phieu.trang_thai === "Nhap" && (
                         <>
                           <button
                             className="confirm-button"

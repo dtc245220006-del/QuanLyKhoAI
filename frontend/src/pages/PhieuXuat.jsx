@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../api";
 
 function PhieuXuat() {
+  const canManageIssue = JSON.parse(
+    localStorage.getItem("user") || "{}"
+  ).role === "ThuKho";
   const [phieuXuat, setPhieuXuat] = useState([]);
   const [hangHoa, setHangHoa] = useState([]);
 
@@ -22,10 +25,6 @@ function PhieuXuat() {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  const currentUser = JSON.parse(
-    localStorage.getItem("user") || "{}"
-  );
 
   // =====================================================
   // LOAD DATA
@@ -174,9 +173,6 @@ function PhieuXuat() {
     }
 
     const data = {
-      ma_tai_khoan: Number(
-        currentUser.id
-      ),
       ly_do: form.ly_do || null,
       chi_tiet: validItems.map((item) => ({
         ma_hang: Number(item.ma_hang),
@@ -304,12 +300,14 @@ function PhieuXuat() {
           </p>
         </div>
 
-        <button
-          className="primary-button"
-          onClick={openCreate}
-        >
-          + Tạo phiếu xuất
-        </button>
+        {canManageIssue && (
+          <button
+            className="primary-button"
+            onClick={openCreate}
+          >
+            + Tạo phiếu xuất
+          </button>
+        )}
       </div>
 
       {message && (
@@ -403,8 +401,8 @@ function PhieuXuat() {
                         Xem
                       </button>
 
-                      {phieu.trang_thai ===
-                        "Nhap" && (
+                      {canManageIssue &&
+                        phieu.trang_thai === "Nhap" && (
                         <>
                           <button
                             className="confirm-button"

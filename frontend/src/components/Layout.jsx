@@ -17,7 +17,7 @@ function Layout() {
     { name: "Multi-Agent AI", path: "/multi-agent", icon: "🧠" },
   ];
 
-  if (user.username === "admin") {
+  if (user.role === "QuanLy") {
     menuItems.push({ name: "Quản lý tài khoản", path: "/tai-khoan", icon: "👥" });
   }
 

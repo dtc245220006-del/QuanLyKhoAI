@@ -17,14 +17,9 @@ function TaiKhoan() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const adminUsername = "admin";
-
-
   const loadUsers = async () => {
     try {
-      const response = await api.get(
-        `/tai-khoan?username=${adminUsername}`
-      );
+      const response = await api.get("/tai-khoan");
 
       setUsers(response.data);
     } catch (err) {
@@ -92,7 +87,7 @@ function TaiKhoan() {
       if (editingUser) {
 
         await api.put(
-          `/tai-khoan/${editingUser.id}?username=${adminUsername}`,
+          `/tai-khoan/${editingUser.id}`,
           {
             password:
               form.password || null,
@@ -108,7 +103,7 @@ function TaiKhoan() {
       } else {
 
         await api.post(
-          `/tai-khoan?username=${adminUsername}`,
+          "/tai-khoan",
           {
             username: form.username,
             password: form.password,
@@ -137,8 +132,9 @@ function TaiKhoan() {
 
   const handleDelete = async (user) => {
 
-    if (user.username === "admin") {
-      alert("Không thể xóa tài khoản admin");
+    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+    if (user.id === currentUser.id) {
+      alert("Không thể xóa tài khoản đang đăng nhập");
       return;
     }
 
@@ -151,7 +147,7 @@ function TaiKhoan() {
     try {
 
       await api.delete(
-        `/tai-khoan/${user.id}?username=${adminUsername}`
+        `/tai-khoan/${user.id}`
       );
 
       setMessage(
@@ -200,7 +196,7 @@ function TaiKhoan() {
           </h1>
 
           <p>
-            Chỉ admin có quyền thêm, sửa và xóa người dùng
+            Chỉ Quản lý có quyền thêm, sửa và xóa người dùng
           </p>
 
         </div>
@@ -274,7 +270,7 @@ function TaiKhoan() {
 
                 <td>
 
-                  {user.username === "admin" ? (
+                  {user.id === JSON.parse(localStorage.getItem("user") || "{}").id ? (
 
                     <span
                       style={{
@@ -282,7 +278,7 @@ function TaiKhoan() {
                         fontSize: "13px"
                       }}
                     >
-                      Tài khoản hệ thống
+                      Tài khoản đang đăng nhập
                     </span>
 
                   ) : (

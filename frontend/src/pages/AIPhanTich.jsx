@@ -81,20 +81,13 @@ function AIPhanTich() {
   // =====================================================
 
   const createProposal = async () => {
-    if (!user.id) {
-      setError(
-        "Không xác định được tài khoản hiện tại"
-      );
-      return;
-    }
-
     try {
       setLoadingProposal(true);
       setError("");
       setMessage("");
 
       const response = await api.post(
-        `/de-xuat-ai?ma_tai_khoan=${user.id}`
+        "/de-xuat-ai"
       );
 
       if (response.data.de_xuat) {
@@ -468,7 +461,7 @@ function AIPhanTich() {
             </p>
           </div>
 
-          {user.username === "admin" && (
+          {user.role === "QuanLy" && (
             <button
               className="secondary-button"
               onClick={createProposal}
@@ -584,7 +577,7 @@ function AIPhanTich() {
 
                   {proposal.trang_thai ===
                     "ChoDuyet" &&
-                    user.username === "admin" && (
+                    user.role === "QuanLy" && (
 
                     <div className="proposal-actions">
 
